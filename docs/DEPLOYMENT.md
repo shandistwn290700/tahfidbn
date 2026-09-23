@@ -125,6 +125,34 @@ lokal. Perlu diketahui: tanpa HTTPS, cookie sesi login dikirim tanpa enkripsi di
 lokal — cukup aman untuk jaringan sekolah tertutup, tapi jangan diteruskan ke internet
 publik tanpa HTTPS.
 
+## Windows: menjalankan otomatis saat komputer menyala (opsional)
+
+Untuk sekolah yang memakai PC/laptop Windows biasa sebagai server (bukan VPS Linux), dan
+ingin aplikasi **menyala otomatis setiap kali komputer dinyalakan** tanpa perlu klik apa pun
+— beda dengan `start-server.bat` di README yang perlu diklik manual — pakai
+[NSSM](https://nssm.cc/) (Non-Sucking Service Manager) untuk menjadikan aplikasi sebagai
+layanan (service) Windows:
+
+1. Unduh NSSM dari [nssm.cc/download](https://nssm.cc/download), ekstrak, lalu jalankan
+   `nssm.exe install` lewat Command Prompt **sebagai Administrator**.
+2. Di jendela yang muncul:
+   - **Path**: lokasi `bun.exe` (cek dengan `where bun` di Command Prompt)
+   - **Startup directory**: folder aplikasi ini, mis. `C:\xampp\htdocs\ngaji`
+   - **Arguments**: `run start`
+3. Klik **Install service**.
+4. Buka **Services** (`services.msc`), cari nama layanan yang dibuat, klik kanan →
+   **Properties** → tab **Recovery**, atur "First failure"/"Second failure" ke
+   **Restart the Service** (supaya otomatis menyala lagi kalau sempat berhenti/crash).
+5. Set **Startup type** ke **Automatic**, lalu **Start** layanannya.
+
+Setelah ini, aplikasi berjalan di latar belakang begitu Windows menyala — tidak perlu klik
+`start-server.bat` lagi, dan tidak ada jendela cmd yang perlu dibiarkan terbuka. Cek statusnya
+kapan saja lewat `services.msc`, atau buka `http://localhost:3000` (atau IP server dari
+komputer lain di jaringan yang sama).
+
+Untuk mematikan/menghapus layanan ini: `nssm.exe stop <nama-layanan>` atau
+`nssm.exe remove <nama-layanan>` lewat Command Prompt Administrator.
+
 ## Memperbarui aplikasi
 
 ```sh

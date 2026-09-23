@@ -14,6 +14,7 @@ kembali oleh sekolah atau TPQ mana pun yang membutuhkan (lihat [LICENSE](LICENSE
 - [Siapa memakai apa](#siapa-memakai-apa)
 - [Prasyarat](#prasyarat)
 - [Instalasi cepat](#instalasi-cepat)
+- [Untuk penanggung jawab Tahfid (non-teknis)](#untuk-penanggung-jawab-tahfid-non-teknis)
 - [Variabel lingkungan](#variabel-lingkungan)
 - [Langkah awal penggunaan](#langkah-awal-penggunaan)
 - [Perintah](#perintah)
@@ -22,6 +23,7 @@ kembali oleh sekolah atau TPQ mana pun yang membutuhkan (lihat [LICENSE](LICENSE
 - [Integrasi Canva (opsional)](#integrasi-canva-opsional)
 - [Backup & pemulihan](#backup--pemulihan)
 - [Berjalan tanpa internet](#berjalan-tanpa-internet)
+- [Aplikasi mobile (Android & iPhone)](#aplikasi-mobile-android--iphone)
 - [Penerapan di server produksi](#penerapan-di-server-produksi)
 - [Keamanan](#keamanan)
 - [Struktur proyek](#struktur-proyek)
@@ -113,6 +115,30 @@ sekolah sungguhan):
 ```sh
 bun run seed     # 3 kelas, 2 guru, 10 siswa; password guru contoh: password123
 ```
+
+## Untuk penanggung jawab Tahfid (non-teknis)
+
+Bila yang menjalankan aplikasi sehari-hari bukan orang teknis (tidak terbiasa mengetik
+perintah `bun run dev`), gunakan **`start-server.bat`** yang sudah disediakan di folder
+utama aplikasi — cukup **klik dua kali**, mirip cara menyalakan Dapodik:
+
+1. Klik dua kali `start-server.bat`.
+2. Saat pertama kali dijalankan, aplikasi akan meminta Anda mengisi `.env` (nama pengguna
+   dan kata sandi admin) lewat Notepad yang terbuka otomatis — isi, simpan, tutup Notepad,
+   lalu jalankan `start-server.bat` sekali lagi.
+3. Server akan berjalan di **jendela terpisah** berjudul
+   *"Tahfid Community - SERVER (JANGAN DITUTUP)"*, dan peramban akan otomatis terbuka ke
+   halaman masuk.
+4. **Jendela server itu harus dibiarkan menyala** selama aplikasi masih dipakai guru/admin
+   — menutupnya sama dengan mematikan aplikasi untuk semua orang. Jendela peluncur yang
+   pertama boleh ditutup kapan saja.
+
+Untuk mematikan aplikasi, cukup tutup jendela server tadi, atau matikan komputernya.
+
+Ini berjalan lewat batch file biasa, bukan pemasang (installer) yang membuatkan ikon di
+Start Menu atau berjalan otomatis saat komputer menyala — kalau sekolah butuh itu (server
+menyala otomatis setiap kali komputer dinyalakan tanpa perlu klik apa pun), lihat opsi
+menjalankannya sebagai layanan Windows di [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Variabel lingkungan
 
@@ -239,6 +265,19 @@ Fitur yang **butuh** internet: integrasi Canva (opsional, lihat di atas) dan pem
 ikon di atas. Semua fitur inti — input hafalan, papan peringkat, cetak laporan PDF, backup —
 berjalan penuh tanpa internet.
 
+## Aplikasi mobile (Android & iPhone)
+
+Selain diakses lewat browser di komputer, aplikasi ini juga bisa dipasang di HP guru/admin,
+dengan syarat **HP harus terhubung ke WiFi yang sama dengan server** — kalau tidak, muncul
+peringatan "Silakan hubungkan ke WiFi server" alih-alih layar kosong/galat.
+
+- **Android** — tersedia sebagai APK (aplikasi pembungkus native, folder
+  `mobile-android/`). Lihat **[docs/MOBILE-ANDROID.md](docs/MOBILE-ANDROID.md)** untuk cara
+  membangun dan memasangnya.
+- **iPhone** — dipasang lewat Safari sebagai Progressive Web App (Add to Home Screen), tanpa
+  App Store dan tanpa akun Apple Developer. Lihat
+  **[docs/MOBILE-IPHONE.md](docs/MOBILE-IPHONE.md)**.
+
 ## Penerapan di server produksi
 
 Panduan langkah demi langkah (Nginx + PM2, sertifikat HTTPS, pembaruan aplikasi) ada di
@@ -285,9 +324,13 @@ data/
 docs/
   CANVA-SETUP.md          Panduan lengkap integrasi Canva
   DEPLOYMENT.md           Panduan penerapan di server produksi
+  MOBILE-ANDROID.md       Panduan membangun & memasang APK Android
+  MOBILE-IPHONE.md        Panduan memasang PWA di iPhone
 scripts/
   seed-dummy-data.ts      Pengisi data contoh
   build-quran-data.ts     Pembangun metadata Al-Qur'an
+mobile-android/           Proyek Capacitor terpisah untuk APK Android (lihat MOBILE-ANDROID.md)
+start-server.bat          Peluncur server untuk penanggung jawab Tahfid non-teknis (Windows)
 ```
 
 ## Lisensi & kredit
@@ -296,5 +339,4 @@ Dilisensikan di bawah [MIT License](LICENSE) — bebas dipakai, diubah, dan dise
 kembali oleh siapa pun, termasuk untuk keperluan komersial, selama notice hak cipta tetap
 disertakan.
 
-Dikembangkan oleh **Shandi Sutiawan** sebagai amal jariyah untuk sekolah dan TPQ yang
-membutuhkan.
+Dikembangkan oleh **Shandi Sutiawan** untuk sekolah dan TPQ yang membutuhkan.

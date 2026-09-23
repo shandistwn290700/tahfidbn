@@ -56,6 +56,11 @@ app.use(
   })
 );
 
+// Service worker (mode PWA) wajib dilayani dari root, bukan /static/, supaya
+// cakupannya (scope) mencakup seluruh aplikasi — service worker tidak bisa
+// mengendalikan halaman di luar direktori tempat skripnya sendiri disajikan.
+app.get("/sw.js", serveStatic({ path: "./public/sw.js" }));
+
 app.get("/", (c) => {
   const sessionId = getCookie(c, "session");
   if (sessionId && getSessionUser(sessionId)) {

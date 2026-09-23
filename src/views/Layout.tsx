@@ -166,6 +166,18 @@ const uxScript = `
   window.addEventListener('load', periksaFontIkon);
   setTimeout(periksaFontIkon, 2000);
 
+  // Daftarkan service worker untuk mode PWA (Add to Home Screen). Cuma
+  // berjaga saat aplikasi diakses lewat WiFi yang salah — lihat public/sw.js.
+  try {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () {
+          /* abaikan — aplikasi tetap berjalan normal tanpa PWA */
+        });
+      });
+    }
+  } catch (err) { /* abaikan */ }
+
   var loader = document.getElementById('page-loader');
   var showTimer = null;
 
@@ -388,6 +400,19 @@ export const Layout: FC<{ title?: string; children: Child }> = ({ title, childre
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <title>{title || getSiteName()}</title>
         <link rel="icon" type={getFaviconMimeType()} href={getFaviconUrl()} />
+        {/*
+          Berkas PWA — memungkinkan aplikasi "dipasang" ke layar utama HP
+          (Android maupun iPhone) lewat Add to Home Screen, tanpa APK/IPA.
+          apple-touch-icon wajib berkas gambar biasa (bukan data: URI), beda
+          dari favicon di atas yang boleh data: URI hasil unggahan admin.
+        */}
+        <link rel="manifest" href="/static/manifest.json" />
+        <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+        <meta name="theme-color" content="#10b981" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Tahfid" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
