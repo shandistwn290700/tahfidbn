@@ -1,0 +1,32 @@
+{
+  "name": "ngaji",
+  "module": "src/index.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --hot src/index.tsx",
+    "start": "bun run src/index.tsx",
+    "build:css": "tailwindcss -i src/styles/input.css -o public/app.css --minify",
+    "watch:css": "tailwindcss -i src/styles/input.css -o public/app.css --watch",
+    "build:quran-data": "bun run scripts/build-quran-data.ts",
+    "seed": "bun run scripts/seed-dummy-data.ts"
+  },
+  "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.9",
+    "@types/bun": "latest",
+    "@types/pdfkit": "^0.13.5",
+    "quran-json": "^3.1.2",
+    "sweetalert2": "^11.14.5",
+    "tailwindcss": "^3.4.17"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "hono": "^4.11.10",
+    "xlsx": "^0.18.5",
+    "jszip": "^3.10.1",
+    "pdfkit": "^0.15.1"
+  }
+}
