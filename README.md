@@ -140,6 +140,12 @@ Start Menu atau berjalan otomatis saat komputer menyala — kalau sekolah butuh 
 menyala otomatis setiap kali komputer dinyalakan tanpa perlu klik apa pun), lihat opsi
 menjalankannya sebagai layanan Windows di [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
+Ada juga **aplikasi desktop client** dengan installer resmi (ikon Start Menu, satu jendela
+aplikasi) untuk guru/admin yang ingin mengakses server dari komputer masing-masing tanpa
+membuka browser — mirip aplikasi Android/iPhone, cuma untuk Windows. Server tetap cuma satu
+(dijalankan lewat `start-server.bat` di atas), aplikasi ini hanya klien yang menyambung ke
+sana. Lihat **[docs/DESKTOP-APP.md](docs/DESKTOP-APP.md)**.
+
 ## Variabel lingkungan
 
 Salin `.env.example` menjadi `.env`, lalu sesuaikan:
@@ -326,10 +332,12 @@ docs/
   DEPLOYMENT.md           Panduan penerapan di server produksi
   MOBILE-ANDROID.md       Panduan membangun & memasang APK Android
   MOBILE-IPHONE.md        Panduan memasang PWA di iPhone
+  DESKTOP-APP.md          Panduan membangun aplikasi desktop Windows (Tauri)
 scripts/
   seed-dummy-data.ts      Pengisi data contoh
   build-quran-data.ts     Pembangun metadata Al-Qur'an
 mobile-android/           Proyek Capacitor terpisah untuk APK Android (lihat MOBILE-ANDROID.md)
+desktop-app/              Proyek Tauri terpisah untuk aplikasi client desktop Windows (lihat DESKTOP-APP.md)
 start-server.bat          Peluncur server untuk penanggung jawab Tahfid non-teknis (Windows)
 ```
 
