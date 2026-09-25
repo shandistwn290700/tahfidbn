@@ -23,6 +23,35 @@ Kode proyeknya ada di folder **`desktop-app/`**, terpisah dari aplikasi web utam
 4. Alamat server yang sudah diisi **disimpan otomatis** — dibuka lagi lain kali langsung
    mencoba menyambung ke alamat yang sama, tidak perlu diisi ulang setiap kali.
 
+## Mode kios (layar penuh tanpa bingkai)
+
+Jendela aplikasi ini sengaja dibuat **layar penuh tanpa bingkai/title bar** — tidak ada
+tombol minimize, maximize, atau X seperti jendela Windows biasa. Ini supaya tampilannya
+rapi seperti aplikasi kios, dan tidak sembarangan bisa ditutup/di-minimize oleh siswa saat
+dipakai untuk sesi hafalan.
+
+Ada **dua cara** keluar dari aplikasi, keduanya murni menutup aplikasi — **berbeda dari
+logout** (logout tetap lewat menu Akun di dalam aplikasi seperti biasa, dan hanya
+mengeluarkan sesi login, bukan menutup programnya):
+
+1. **Tombol bulat merah melayang** di pojok kanan bawah layar — selalu tampil di atas
+   jendela utama. Diklik sekali akan membesar menjadi panel konfirmasi ("Apakah Anda yakin
+   mau keluar dari aplikasi?") dengan tombol **Batal** dan **Ya, Keluar**. Ini cara yang
+   dianjurkan untuk guru, karena tidak perlu menghafal kombinasi tombol apa pun.
+2. **Kombinasi tombol `Ctrl + Alt + Shift + Q`** — bekerja kapan saja selama aplikasi
+   terbuka (tidak perlu sedang fokus di jendela tertentu), langsung menutup aplikasi tanpa
+   konfirmasi. Cara ini tetap dipertahankan untuk admin/teknisi yang terbiasa memakainya.
+
+> Tombol melayang dan kombinasi tombol ini didefinisikan di
+> `desktop-app/src-tauri/src/main.rs` (dan tampilan panelnya di
+> `desktop-app/dist/exit-button.html`). Keduanya dibangun terpisah dari kode server/aplikasi
+> web utama, jadi tidak memengaruhi `src/` sama sekali. Ganti nilai `Modifiers`/`Code` di
+> sana kalau ingin memakai kombinasi tombol lain, lalu build ulang.
+>
+> Panel konfirmasi memakai tampilan buatan sendiri, bukan `window.confirm()` bawaan
+> browser — jendela tombol ini kecil dan mepet ke pojok layar, sehingga dialog bawaan
+> browser bisa terpotong di luar tepi layar dan tombolnya jadi tidak terklik.
+
 ## Membangun installer-nya
 
 ### Prasyarat
