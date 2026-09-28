@@ -7,6 +7,7 @@ const path = require('path');
 const BUN = process.env.BUN_PATH || path.join(process.env.HOME || '', '.bun/bin/bun');
 const OUTER_PORT = parseInt(process.env.PORT || '3000', 10);
 let innerPort = 0;
+let innerHost = null;
 
 function log(prefix, data) {
   String(data).split('\n').filter(Boolean).forEach((l) => console.error(prefix + ' ' + l));
@@ -26,6 +27,28 @@ function freePort(cb) {
   s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => cb(p)); });
 }
 
+function probe(host) {
+  return new Promise((resolve) => {
+    const s = net.connect({ host, port: innerPort, family: host.includes(':') ? 6 : 4 });
+    s.setTimeout(3000);
+    s.on('connect', () => { s.destroy(); resolve(null); });
+    s.on('timeout', () => { s.destroy(); resolve('TIMEOUT'); });
+    s.on('error', (e) => resolve(e.code || e.message));
+  });
+}
+
+async function waitForApp() {
+  for (let i = 0; i < 20 && !innerHost; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    for (const h of ['127.0.0.1', '::1']) {
+      const err = await probe(h);
+      console.error('[wrapper] probe ' + h + ':' + innerPort + ' -> ' + (err || 'OK'));
+      if (!err) { innerHost = h; break; }
+    }
+  }
+  if (!innerHost) console.error('[wrapper] Bun tidak bisa dijangkau di alamat mana pun');
+}
+
 function startApp() {
   freePort((p) => {
     innerPort = p;
@@ -35,6 +58,7 @@ function startApp() {
       process.exit(code || 1);
     });
     process.on('SIGTERM', () => child.kill());
+    waitForApp();
   });
 }
 
@@ -48,14 +72,12 @@ function prepare() {
 }
 
 http.createServer((req, res) => {
-  if (!innerPort) { res.statusCode = 503; return res.end('Aplikasi sedang menyala, coba lagi sebentar.'); }
+  const wait = () => { if (!res.headersSent) { res.statusCode = 503; res.end('Aplikasi sedang menyala, coba lagi sebentar.'); } };
+  if (!innerHost) return wait();
   const proxy = http.request(
-    { host: 'localhost', port: innerPort, path: req.url, method: req.method, headers: req.headers },
+    { host: innerHost, family: innerHost.includes(':') ? 6 : 4, port: innerPort, path: req.url, method: req.method, headers: req.headers },
     (r) => { res.writeHead(r.statusCode, r.headers); r.pipe(res); }
   );
-  proxy.on('error', (e) => {
-    console.error('[wrapper] proxy gagal ke port ' + innerPort + ': ' + e.code + ' ' + e.message);
-    if (!res.headersSent) { res.statusCode = 503; res.end('Aplikasi sedang menyala, coba lagi sebentar.'); }
-  });
+  proxy.on('error', (e) => { console.error('[wrapper] proxy gagal ke ' + innerHost + ':' + innerPort + ': ' + (e.code || e.message)); wait(); });
   req.pipe(proxy);
 }).listen(OUTER_PORT, prepare);
