@@ -50,9 +50,12 @@ function prepare() {
 http.createServer((req, res) => {
   if (!innerPort) { res.statusCode = 503; return res.end('Aplikasi sedang menyala, coba lagi sebentar.'); }
   const proxy = http.request(
-    { host: '127.0.0.1', port: innerPort, path: req.url, method: req.method, headers: req.headers },
+    { host: 'localhost', port: innerPort, path: req.url, method: req.method, headers: req.headers },
     (r) => { res.writeHead(r.statusCode, r.headers); r.pipe(res); }
   );
-  proxy.on('error', () => { res.statusCode = 503; res.end('Aplikasi sedang menyala, coba lagi sebentar.'); });
+  proxy.on('error', (e) => {
+    console.error('[wrapper] proxy gagal ke port ' + innerPort + ': ' + e.code + ' ' + e.message);
+    if (!res.headersSent) { res.statusCode = 503; res.end('Aplikasi sedang menyala, coba lagi sebentar.'); }
+  });
   req.pipe(proxy);
 }).listen(OUTER_PORT, prepare);
