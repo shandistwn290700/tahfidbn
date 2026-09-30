@@ -23,7 +23,7 @@ const ClassPicker: FC<{
   if (classes.length === 0) {
     return (
       <p class="text-text-secondary dark:text-text-secondary-dark text-sm italic">
-        Belum ada kelas. Buat kelas lebih dulu di menu Administrasi &rsaquo; Kelas. Sekian.
+        Belum ada kelas. Buat kelas lebih dulu di menu Administrasi &rsaquo; Kelas.
       </p>
     );
   }
