@@ -131,7 +131,7 @@ export const ClassesPage: FC<{
                 id="ket-kelas-baru"
                 name="description"
                 class={INPUT}
-                placeholder="Contoh: Kelas putra, gedung utara"
+                placeholder="Contoh: Kelas putra, gedung utara timur"
               />
             </div>
           </div>
