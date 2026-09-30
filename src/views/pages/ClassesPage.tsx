@@ -22,7 +22,7 @@ const TeacherPicker: FC<{
   if (teachers.length === 0) {
     return (
       <p class="text-text-secondary dark:text-text-secondary-dark text-sm italic">
-        Belum ada akun guru. Tambahkan lebih dulu di menu Administrasi &rsaquo; Pengguna.
+        Belum ada akun guru. Tambahkan lebih dulu di menu Administrasi &rsaquo; Pengguna. Sekian.
       </p>
     );
   }
