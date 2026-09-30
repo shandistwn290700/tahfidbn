@@ -81,8 +81,7 @@ export const LoginPage: FC<{ error?: string; success?: string }> = ({ error }) =
           </div>
 
           <p class="text-center text-text-secondary dark:text-text-secondary-dark text-xs mt-6">
-            Akun hanya dibuat oleh administrator sekolah. Hubungi admin bila Anda belum memiliki
-            akses.
+               
           </p>
         </div>
       </main>
