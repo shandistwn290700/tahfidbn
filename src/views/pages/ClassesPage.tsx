@@ -118,7 +118,7 @@ export const ClassesPage: FC<{
                 id="nama-kelas-baru"
                 name="name"
                 class={INPUT}
-                placeholder="Contoh: 6A atau 5 Abu Bakar"
+                //placeholder="Contoh: 6A atau 5 Abu Bakar"
                 maxlength={60}
                 required
               />
