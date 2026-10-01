@@ -140,6 +140,25 @@ di `src/lib/http.ts`.
   `periodLabel`); logo, nama sekolah, dan kontak di Pengaturan › Laporan & Semester hanya
   dipakai PDF ini.
 
+### Aplikasi Android (`mobile-android/`)
+
+Pembungkus WebView native (Java, tanpa dependensi) yang membuka server produksi; hasilnya
+disalin ke `APLIKASI/[Android] Tahfid Community.apk`.
+
+```sh
+cd mobile-android
+JAVA_HOME="C:/Program Files/Android/Android Studio/jbr" ./gradlew assembleRelease
+# uji ke server lokal: ./gradlew assembleDebug -PdebugServerUrl=http://localhost:3999 (+ adb reverse)
+```
+
+- Alamat server ada di `app/build.gradle.kts` (`serverUrl`). Naikkan `versionCode` setiap rilis.
+- `applicationId` **harus tetap** `com.tahfidcommunity.app` dan APK ditandatangani
+  `~/.android/debug.keystore` (bawaan bila `keystore.properties` tidak ada) — kunci APK
+  Capacitor lama, supaya APK baru terpasang sebagai pembaruan tanpa uninstall. Kehilangan
+  berkas kunci itu berarti pengguna harus uninstall dulu.
+- Unduhan `blob:` (tautan `data-fetch-download` di `Layout.tsx`) diteruskan ke Android lewat
+  jembatan JS `TahfidApk`; unduhan biasa lewat DownloadManager dengan cookie sesi WebView.
+
 ## Lokasi berkas penting
 
 | Keperluan | Berkas |
