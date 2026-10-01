@@ -10,6 +10,7 @@ import { join } from "node:path";
 import { Database } from "bun:sqlite";
 import { db, dbPath, reconnectDatabase } from "../db/connection.ts";
 import { initializeDatabase } from "../db/schema.ts";
+import { publicMessage } from "./errors.ts";
 
 const DATA_DIR = join(import.meta.dir, "..", "..", "data");
 
@@ -138,7 +139,7 @@ function validateDatabaseFile(buffer: Uint8Array): { ok: true } | { ok: false; e
 
     return { ok: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Berkas tidak dapat dibuka sebagai basis data.";
+    const message = publicMessage(err, "Berkas tidak dapat dibuka sebagai basis data.");
     return { ok: false, error: message };
   } finally {
     check?.close();

@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { db } from "../db/connection.ts";
 import { getPhotoDiskPath } from "./photos.ts";
 import { getStudentProgress } from "./progress-calc.ts";
+import { PublicError } from "./errors.ts";
+import { log } from "./logger.ts";
 
 const AUTHORIZE_URL = "https://www.canva.com/api/oauth/authorize";
 const API_BASE = "https://api.canva.com/rest/v1";
@@ -49,11 +51,11 @@ function clearSetting(key: string): void {
  * refresh token ditolak, akun belum terhubung). Antrean laporan berhenti
  * sementara saat menerima galat ini, alih-alih menggagalkan siswa satu per satu.
  */
-export class CanvaAuthError extends Error {}
+export class CanvaAuthError extends PublicError {}
 
 function requireEnv(name: string): string {
   const value = process.env[name];
-  if (!value) throw new Error(`Variabel lingkungan ${name} belum diisi di .env.`);
+  if (!value) throw new PublicError(`Variabel lingkungan ${name} belum diisi di .env.`);
   return value;
 }
 
@@ -81,7 +83,7 @@ export function getCanvaRedirectUri(): string | null {
 
 function requireRedirectUri(): string {
   const uri = getCanvaRedirectUri();
-  if (!uri) throw new Error("CANVA_REDIRECT_URI (atau APP_URL) belum diisi di .env.");
+  if (!uri) throw new PublicError("CANVA_REDIRECT_URI (atau APP_URL) belum diisi di .env.");
   return uri;
 }
 
@@ -158,8 +160,15 @@ async function requestToken(body: URLSearchParams): Promise<TokenResponse> {
     const text = await response.text();
     // 400/401 dari endpoint token berarti kode/refresh token ditolak secara
     // permanen (mis. "Refresh token used twice"); 5xx/jaringan masih bisa dicoba lagi.
-    const ErrorType = response.status === 400 || response.status === 401 ? CanvaAuthError : Error;
-    throw new ErrorType(`Gagal menghubungi Canva (${response.status}): ${text}`);
+    // Isi respons Canva hanya masuk log server, tidak ikut ke pesan di layar.
+    if (response.status === 400 || response.status === 401) {
+      const ref = log.error("canva.token_ditolak", new Error(text), { status: response.status });
+      throw new CanvaAuthError(
+        `Canva menolak permintaan token (${response.status}). Periksa CANVA_CLIENT_ID dan ` +
+          `CANVA_CLIENT_SECRET di .env, lalu hubungkan ulang. (kode galat: ${ref})`
+      );
+    }
+    throw new Error(`Gagal menghubungi Canva (${response.status}): ${text}`);
   }
 
   return (await response.json()) as TokenResponse;
@@ -233,9 +242,10 @@ export async function getValidAccessToken(): Promise<string> {
         // Token yang tersimpan sudah tidak bisa dipakai lagi — dilepas supaya
         // halaman Pengaturan menampilkan "belum terhubung" dan admin menghubungkan ulang.
         disconnectCanva();
+        log.warn("canva.koneksi_dilepas", { message: "Refresh token ditolak; token Canva dilepas." });
         throw new CanvaAuthError(
           "Koneksi Canva terputus dan perlu dihubungkan ulang di Administrasi › Pengaturan › " +
-            `Integrasi Canva. (${err.message})`
+            "Integrasi Canva."
         );
       }
       throw err;
@@ -382,7 +392,7 @@ export async function uploadAsset(fileName: string, data: Uint8Array): Promise<s
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
-  throw new Error("Batas waktu menunggu unggahan aset ke Canva terlampaui.");
+  throw new PublicError("Batas waktu menunggu unggahan aset ke Canva terlampaui.");
 }
 
 /** Mengekspor desain hasil autofill sebagai PDF, mengembalikan URL unduhan sementara. */
@@ -421,7 +431,7 @@ export async function exportDesignAsPdf(designId: string): Promise<string> {
     await new Promise((resolve) => setTimeout(resolve, 700));
   }
 
-  throw new Error("Batas waktu menunggu ekspor Canva terlampaui.");
+  throw new PublicError("Batas waktu menunggu ekspor Canva terlampaui.");
 }
 
 export interface CanvaReportStudent {
@@ -449,7 +459,7 @@ export async function generateWeeklyReportViaCanva(
 ): Promise<Buffer> {
   const brandTemplateId = getBrandTemplateId();
   if (!brandTemplateId) {
-    throw new Error("ID Brand Template Canva belum diatur di Administrasi › Pengaturan › Integrasi Canva.");
+    throw new PublicError("ID Brand Template Canva belum diatur di Administrasi › Pengaturan › Integrasi Canva.");
   }
 
   const totalKeseluruhan = getStudentProgress(student.id).totalMemorized;

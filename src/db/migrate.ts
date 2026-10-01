@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { db } from "./connection.ts";
+import { log } from "../lib/logger.ts";
 
 const DATA_DIR = join(import.meta.dir, "..", "..", "data");
 
@@ -29,10 +30,10 @@ function backupDatabase(label: string): string | null {
 
   try {
     db.exec(`VACUUM INTO '${target.replace(/'/g, "''")}'`);
-    console.log(`[migrasi] Cadangan basis data dibuat: ${target}`);
+    log.info("migrasi", { message: `Cadangan basis data dibuat: ${target}` });
     return target;
   } catch (err) {
-    console.warn("[migrasi] Gagal membuat cadangan basis data:", err);
+    log.error("migrasi.cadangan_gagal", err);
     return null;
   }
 }
@@ -47,7 +48,7 @@ function migrateProgressToStudents() {
   if (!tableExists("progress_entries")) return;
   if (!columnNames("progress_entries").includes("user_id")) return;
 
-  console.log("[migrasi] Struktur lama terdeteksi — memindahkan hafalan dari akun ke siswa.");
+  log.info("migrasi", { message: "Struktur lama terdeteksi — memindahkan hafalan dari akun ke siswa." });
   backupDatabase("pra-siswa");
 
   const legacyMembers = db
@@ -156,9 +157,7 @@ function migrateProgressToStudents() {
     }
   })();
 
-  console.log(
-    `[migrasi] Selesai. ${userToStudent.size} akun lama dipindahkan menjadi data siswa.`
-  );
+  log.info("migrasi", { message: `Selesai. ${userToStudent.size} akun lama dipindahkan menjadi data siswa.` });
 }
 
 /** Peran "member" tidak dipakai lagi; yang tersisa hanya "admin" dan "guru". */
@@ -170,7 +169,7 @@ function migrateUserRoles() {
   if (stale.c === 0) return;
 
   db.prepare("UPDATE users SET role = 'guru' WHERE role NOT IN ('admin', 'guru')").run();
-  console.log(`[migrasi] ${stale.c} akun disesuaikan ke peran "guru".`);
+  log.info("migrasi", { message: `${stale.c} akun disesuaikan ke peran "guru".` });
 }
 
 /**
@@ -183,7 +182,7 @@ function migrateClassTeachersSubject() {
   if (!tableExists("class_teachers")) return;
   if (columnNames("class_teachers").includes("subject")) return;
 
-  console.log("[migrasi] Struktur lama terdeteksi — menambahkan jenis akses guru per kelas.");
+  log.info("migrasi", { message: "Struktur lama terdeteksi — menambahkan jenis akses guru per kelas." });
   backupDatabase("pra-subjek-guru");
 
   let migratedCount = 0;
@@ -220,7 +219,7 @@ function migrateClassTeachersSubject() {
     db.exec("CREATE INDEX IF NOT EXISTS idx_class_teachers_user ON class_teachers(user_id);");
   })();
 
-  console.log(`[migrasi] Selesai. ${migratedCount} penugasan guru lama kini berjenis Tahfid.`);
+  log.info("migrasi", { message: `Selesai. ${migratedCount} penugasan guru lama kini berjenis Tahfid.` });
 }
 
 /**
@@ -242,9 +241,9 @@ function migrateRemoveTilawati() {
 
   if (!hasEntries && !hasLog && tilawatiAssignments === 0) return;
 
-  console.log("[migrasi] Data Tilawati terdeteksi — fitur ini sudah dihapus, datanya dibuang.");
+  log.info("migrasi", { message: "Data Tilawati terdeteksi — fitur ini sudah dihapus, datanya dibuang." });
   if (!backupDatabase("pra-hapus-tilawati")) {
-    console.warn("[migrasi] Penghapusan data Tilawati ditunda karena cadangan gagal dibuat.");
+    log.warn("migrasi", { message: "Penghapusan data Tilawati ditunda karena cadangan gagal dibuat." });
     return;
   }
 
@@ -259,10 +258,11 @@ function migrateRemoveTilawati() {
     db.prepare("DELETE FROM class_teachers WHERE subject = 'tilawati'").run();
   })();
 
-  console.log(
-    `[migrasi] Selesai. Dihapus: ${entryCount} capaian, ${logCount} riwayat, ` +
-      `dan ${tilawatiAssignments} penugasan guru Tilawati.`
-  );
+  log.info("migrasi", {
+    message:
+      `Selesai. Dihapus: ${entryCount} capaian, ${logCount} riwayat, ` +
+      `dan ${tilawatiAssignments} penugasan guru Tilawati.`,
+  });
 }
 
 /** Kolom untuk menyimpan lokasi berkas foto siswa hasil unggah massal. */
@@ -271,7 +271,7 @@ function migrateStudentPhoto() {
   if (columnNames("students").includes("photo_path")) return;
 
   db.exec("ALTER TABLE students ADD COLUMN photo_path TEXT");
-  console.log('[migrasi] Kolom "photo_path" ditambahkan ke tabel students.');
+  log.info("migrasi", { message: 'Kolom "photo_path" ditambahkan ke tabel students.' });
 }
 
 export function runMigrations() {

@@ -6,6 +6,7 @@ import { resolveReadingBookmarkInput } from "../lib/reading-bookmark-input.ts";
 import { getSurahAyahs } from "../lib/quran-loader.ts";
 import type { Env, ReadingBookmark } from "../types.ts";
 import { QuranPage } from "../views/pages/QuranPage.tsx";
+import { publicMessage } from "../lib/errors.ts";
 
 const quran = new Hono<Env>();
 
@@ -44,7 +45,7 @@ quran.get("/", (c) => {
   try {
     ayahs = getSurahAyahs(selectedSurah.number);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to load surah text.";
+    const message = publicMessage(err, "Failed to load surah text.");
     loadError = message;
   }
 

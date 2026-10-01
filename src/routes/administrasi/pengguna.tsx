@@ -9,8 +9,10 @@ import {
 } from "../../lib/session.ts";
 import { listClasses, setTeacherClasses } from "../../lib/access.ts";
 import { readInt, redirectWith } from "../../lib/http.ts";
+import { audit } from "../../lib/logger.ts";
 import { UsersPage } from "../../views/pages/UsersPage.tsx";
 import type { Env, User } from "../../types.ts";
+import { publicMessage } from "../../lib/errors.ts";
 
 const pengguna = new Hono<Env>();
 
@@ -74,9 +76,10 @@ pengguna.post("/", async (c) => {
   try {
     const created = await createUser({ username, password, name, email: email || null, role });
     saveTeacherAssignments(created.id, body);
+    audit(c, "pengguna.dibuat", { targetId: created.id, username: created.username, role: created.role });
     return redirectWith(c, BASE, "success", `Akun untuk ${name} berhasil dibuat.`);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Akun gagal dibuat.";
+    const message = publicMessage(err, "Akun gagal dibuat.");
     return redirectWith(c, BASE, "error", message);
   }
 });
@@ -114,6 +117,11 @@ pengguna.post("/:id", async (c) => {
   ).run(name, email || null, role, userId);
 
   saveTeacherAssignments(userId, body);
+  audit(c, "pengguna.diubah", {
+    targetId: userId,
+    username: target.username,
+    ...(target.role !== role ? { roleLama: target.role, roleBaru: role } : {}),
+  });
 
   // Perubahan peran harus langsung berlaku, bukan menunggu sesi lama kedaluwarsa.
   if (target.role !== role && userId !== currentUser.id) {
@@ -140,6 +148,7 @@ pengguna.post("/:id/password", async (c) => {
   }
 
   await updateUserPassword(userId, newPassword);
+  audit(c, "pengguna.password_direset", { targetId: userId, name: target.name });
 
   return redirectWith(
     c,
@@ -169,6 +178,7 @@ pengguna.post("/:id/hapus", (c) => {
   }
 
   db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+  audit(c, "pengguna.dihapus", { targetId: userId, name: target.name, role: target.role }, "warn");
 
   return redirectWith(c, BASE, "success", `Akun ${target.name} telah dihapus.`);
 });

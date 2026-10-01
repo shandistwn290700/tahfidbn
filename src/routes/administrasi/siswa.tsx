@@ -9,6 +9,7 @@ import { isAllowedPhotoExt, savePhotoForStudent, deletePhotoForStudent } from ".
 import { StudentsPage } from "../../views/pages/StudentsPage.tsx";
 import { ImportResultPage, type ImportIssue } from "../../views/pages/ImportResultPage.tsx";
 import type { Env, StudentWithClass } from "../../types.ts";
+import { publicMessage } from "../../lib/errors.ts";
 
 const siswa = new Hono<Env>();
 
@@ -379,7 +380,7 @@ siswa.post("/foto", async (c) => {
       updatePhoto.run(photoPath, studentId);
       updated++;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Gagal menyimpan foto";
+      const message = publicMessage(err, "Gagal menyimpan foto");
       skipped.push({ label: baseName, reason: message });
     }
   }

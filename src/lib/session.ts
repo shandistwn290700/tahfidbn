@@ -1,5 +1,7 @@
 import { db } from "../db/connection.ts";
 import type { User, UserRole } from "../types.ts";
+import { PublicError } from "./errors.ts";
+import { audit, log } from "./logger.ts";
 
 export function createSession(userId: number): string {
   const id = crypto.randomUUID();
@@ -66,14 +68,14 @@ export async function createUser(params: {
   const username = params.username.trim().toLowerCase();
 
   if (!/^[a-z0-9._-]{3,32}$/.test(username)) {
-    throw new Error(
+    throw new PublicError(
       "Nama pengguna hanya boleh berisi huruf, angka, titik, garis bawah, atau strip (3–32 karakter)."
     );
   }
 
   const existing = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
   if (existing) {
-    throw new Error("Nama pengguna sudah dipakai.");
+    throw new PublicError("Nama pengguna sudah dipakai.");
   }
 
   const passwordHash = await hashPassword(params.password);
@@ -146,15 +148,17 @@ export async function ensureDefaultAdmin(): Promise<void> {
   const password = process.env.ADMIN_PASSWORD;
 
   if (!password) {
-    console.warn(
-      "[start] Belum ada akun apa pun dan ADMIN_PASSWORD belum diisi di .env — " +
-        "isi ADMIN_USERNAME dan ADMIN_PASSWORD lalu jalankan ulang untuk membuat akun admin pertama."
-    );
+    log.warn("start.admin_belum_ada", {
+      message:
+        "Belum ada akun apa pun dan ADMIN_PASSWORD belum diisi di .env — " +
+        "isi ADMIN_USERNAME dan ADMIN_PASSWORD lalu jalankan ulang untuk membuat akun admin pertama.",
+    });
     return;
   }
 
   await createUser({ username, password, name: "Administrator", role: "admin" });
-  console.log(
-    `[start] Akun admin awal "${username}" dibuat. Ganti passwordnya setelah login pertama.`
-  );
+  audit(null, "akun.admin_awal_dibuat", {
+    username,
+    message: `Akun admin awal "${username}" dibuat. Ganti passwordnya setelah login pertama.`,
+  });
 }

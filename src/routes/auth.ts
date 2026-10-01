@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
-import { verifyCredentials, createSession, deleteSession } from "../lib/session.ts";
+import { verifyCredentials, createSession, deleteSession, getSessionUser } from "../lib/session.ts";
+import { db } from "../db/connection.ts";
+import { audit } from "../lib/logger.ts";
 
 const auth = new Hono();
 
@@ -32,6 +34,15 @@ function recordFailure(key: string) {
   }
 }
 
+/**
+ * Nama pengguna yang dicatat untuk login gagal. Nama yang tidak terdaftar tidak ditulis
+ * apa adanya — orang kadang tak sengaja mengetik password di kolom nama pengguna.
+ */
+function loggedUsername(key: string): string {
+  const known = db.prepare("SELECT 1 FROM users WHERE username = ?").get(key);
+  return known ? key : "(tidak terdaftar)";
+}
+
 function gagal(pesan: string) {
   return `/login?error=${encodeURIComponent(pesan)}`;
 }
@@ -48,6 +59,7 @@ auth.post("/login", async (c) => {
   const key = username.toLowerCase();
   const sisaDetik = checkThrottle(key);
   if (sisaDetik > 0) {
+    audit(c, "auth.login_diblokir", { username: loggedUsername(key) }, "warn");
     return c.redirect(
       gagal(
         `Terlalu banyak percobaan masuk. Silakan coba lagi dalam ${Math.ceil(sisaDetik / 60)} menit.`
@@ -58,11 +70,13 @@ auth.post("/login", async (c) => {
   const user = await verifyCredentials(username, password);
   if (!user) {
     recordFailure(key);
+    audit(c, "auth.login_gagal", { username: loggedUsername(key) }, "warn");
     return c.redirect(gagal("Nama pengguna atau password salah."));
   }
 
   attempts.delete(key);
   const sessionId = createSession(user.id);
+  audit(c, "auth.login_berhasil", { userId: user.id, username: user.username });
 
   setCookie(c, "session", sessionId, {
     httpOnly: true,
@@ -77,7 +91,11 @@ auth.post("/login", async (c) => {
 
 auth.post("/logout", (c) => {
   const sessionId = getCookie(c, "session");
-  if (sessionId) deleteSession(sessionId);
+  if (sessionId) {
+    const user = getSessionUser(sessionId);
+    if (user) audit(c, "auth.logout", { userId: user.id, username: user.username });
+    deleteSession(sessionId);
+  }
   deleteCookie(c, "session", { path: "/" });
   return c.redirect("/login?success=" + encodeURIComponent("Anda telah keluar dari aplikasi."));
 });
