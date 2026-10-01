@@ -60,32 +60,20 @@ const TeacherPicker: FC<{
   );
 };
 
-/** Guru pengampu Tahfid dan Tilawati bisa berbeda untuk kelas yang sama. */
-const SubjectTeacherPickers: FC<{
+/** Guru yang dicentang berhak menginput hafalan siswa kelas ini. */
+const ClassTeacherPicker: FC<{
   teachers: User[];
-  selectedTahfid: number[];
-  selectedTilawati: number[];
+  selected: number[];
   idPrefix: string;
-}> = ({ teachers, selectedTahfid, selectedTilawati, idPrefix }) => (
-  <div class="space-y-4">
-    <div>
-      <span class={LABEL}>Guru Pengampu &mdash; Hafalan Qur'an (Tahfid)</span>
-      <TeacherPicker
-        teachers={teachers}
-        selected={selectedTahfid}
-        idPrefix={`${idPrefix}-tahfid`}
-        fieldName="teacher_ids_tahfid"
-      />
-    </div>
-    <div>
-      <span class={LABEL}>Guru Pengampu &mdash; Capaian Tilawati</span>
-      <TeacherPicker
-        teachers={teachers}
-        selected={selectedTilawati}
-        idPrefix={`${idPrefix}-tilawati`}
-        fieldName="teacher_ids_tilawati"
-      />
-    </div>
+}> = ({ teachers, selected, idPrefix }) => (
+  <div>
+    <span class={LABEL}>Guru Pengampu &mdash; Hafalan Qur'an (Tahfid)</span>
+    <TeacherPicker
+      teachers={teachers}
+      selected={selected}
+      idPrefix={`${idPrefix}-tahfid`}
+      fieldName="teacher_ids_tahfid"
+    />
   </div>
 );
 
@@ -93,9 +81,8 @@ export const ClassesPage: FC<{
   user: User;
   classes: ClassRoomSummary[];
   teachers: User[];
-  assignmentsTahfid: Record<number, number[]>;
-  assignmentsTilawati: Record<number, number[]>;
-}> = ({ user, classes, teachers, assignmentsTahfid, assignmentsTilawati }) => {
+  assignments: Record<number, number[]>;
+}> = ({ user, classes, teachers, assignments }) => {
   const totalStudents = classes.reduce((sum, k) => sum + k.student_count, 0);
 
   return (
@@ -137,12 +124,7 @@ export const ClassesPage: FC<{
           </div>
 
           <div class="mt-5">
-            <SubjectTeacherPickers
-              teachers={teachers}
-              selectedTahfid={[]}
-              selectedTilawati={[]}
-              idPrefix="baru"
-            />
+            <ClassTeacherPicker teachers={teachers} selected={[]} idPrefix="baru" />
           </div>
 
           <div class="mt-5">
@@ -224,10 +206,9 @@ export const ClassesPage: FC<{
                     </div>
 
                     <div class="mt-4">
-                      <SubjectTeacherPickers
+                      <ClassTeacherPicker
                         teachers={teachers}
-                        selectedTahfid={assignmentsTahfid[kelas.id] || []}
-                        selectedTilawati={assignmentsTilawati[kelas.id] || []}
+                        selected={assignments[kelas.id] || []}
                         idPrefix={`kelas-${kelas.id}`}
                       />
                     </div>

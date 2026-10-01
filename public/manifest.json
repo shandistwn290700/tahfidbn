@@ -1,7 +1,7 @@
 {
   "name": "Tahfid Community",
   "short_name": "Tahfid",
-  "description": "Pencatatan dan pemeringkatan hafalan Al-Qur'an dan Tilawati",
+  "description": "Pencatatan dan pemeringkatan hafalan Al-Qur'an",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

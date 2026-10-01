@@ -175,9 +175,9 @@ function migrateUserRoles() {
 
 /**
  * Struktur lama: satu guru = satu akses per kelas (tanpa jenis). Struktur baru
- * membedakan akses per jenis (Tahfid/Tilawati) supaya guru bisa ditugaskan
- * terpisah. Guru yang sudah ada pada struktur lama otomatis mendapat akses
- * kedua jenis, supaya tidak ada yang kehilangan akses saat aplikasi diperbarui.
+ * menyimpan jenis akses per baris. Guru yang sudah ada pada struktur lama
+ * otomatis mendapat akses Tahfid, supaya tidak ada yang kehilangan akses saat
+ * aplikasi diperbarui.
  */
 function migrateClassTeachersSubject() {
   if (!tableExists("class_teachers")) return;
@@ -213,7 +213,6 @@ function migrateClassTeachersSubject() {
 
     for (const row of oldRows) {
       insert.run(row.class_id, row.user_id, "tahfid", row.created_at);
-      insert.run(row.class_id, row.user_id, "tilawati", row.created_at);
     }
 
     db.exec("DROP TABLE class_teachers");
@@ -221,8 +220,48 @@ function migrateClassTeachersSubject() {
     db.exec("CREATE INDEX IF NOT EXISTS idx_class_teachers_user ON class_teachers(user_id);");
   })();
 
+  console.log(`[migrasi] Selesai. ${migratedCount} penugasan guru lama kini berjenis Tahfid.`);
+}
+
+/**
+ * Fitur Tilawati dihapus dari aplikasi. Tabel capaian dan riwayatnya ikut dibuang,
+ * begitu pula penugasan guru berjenis Tilawati. Karena datanya hilang permanen,
+ * penghapusan hanya dijalankan bila cadangan berhasil dibuat; kalau gagal,
+ * tabel dibiarkan (tidak lagi dibaca aplikasi) dan dicoba lagi saat start berikutnya.
+ */
+function migrateRemoveTilawati() {
+  const hasEntries = tableExists("tilawati_entries");
+  const hasLog = tableExists("tilawati_log");
+  const tilawatiAssignments = tableExists("class_teachers")
+    ? (
+        db
+          .prepare("SELECT COUNT(*) AS c FROM class_teachers WHERE subject = 'tilawati'")
+          .get() as { c: number }
+      ).c
+    : 0;
+
+  if (!hasEntries && !hasLog && tilawatiAssignments === 0) return;
+
+  console.log("[migrasi] Data Tilawati terdeteksi — fitur ini sudah dihapus, datanya dibuang.");
+  if (!backupDatabase("pra-hapus-tilawati")) {
+    console.warn("[migrasi] Penghapusan data Tilawati ditunda karena cadangan gagal dibuat.");
+    return;
+  }
+
+  const countRows = (table: string, exists: boolean) =>
+    exists ? (db.prepare(`SELECT COUNT(*) AS c FROM ${table}`).get() as { c: number }).c : 0;
+  const entryCount = countRows("tilawati_entries", hasEntries);
+  const logCount = countRows("tilawati_log", hasLog);
+
+  db.transaction(() => {
+    db.exec("DROP TABLE IF EXISTS tilawati_log");
+    db.exec("DROP TABLE IF EXISTS tilawati_entries");
+    db.prepare("DELETE FROM class_teachers WHERE subject = 'tilawati'").run();
+  })();
+
   console.log(
-    `[migrasi] Selesai. ${migratedCount} penugasan guru lama kini mencakup Tahfid & Tilawati.`
+    `[migrasi] Selesai. Dihapus: ${entryCount} capaian, ${logCount} riwayat, ` +
+      `dan ${tilawatiAssignments} penugasan guru Tilawati.`
   );
 }
 
@@ -240,4 +279,5 @@ export function runMigrations() {
   migrateUserRoles();
   migrateStudentPhoto();
   migrateClassTeachersSubject();
+  migrateRemoveTilawati();
 }

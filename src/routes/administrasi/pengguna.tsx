@@ -10,7 +10,7 @@ import {
 import { listClasses, setTeacherClasses } from "../../lib/access.ts";
 import { readInt, redirectWith } from "../../lib/http.ts";
 import { UsersPage } from "../../views/pages/UsersPage.tsx";
-import type { Env, TeachingSubject, User } from "../../types.ts";
+import type { Env, User } from "../../types.ts";
 
 const pengguna = new Hono<Env>();
 
@@ -24,10 +24,9 @@ function toIdArray(value: unknown): number[] {
   return raw.map((v) => parseInt(String(v), 10)).filter((v) => Number.isFinite(v));
 }
 
-/** Simpan penugasan kelas seorang guru untuk kedua jenis sekaligus, dari body form. */
+/** Simpan penugasan kelas ampuan seorang guru dari body form. */
 function saveTeacherAssignments(userId: number, body: Record<string, unknown>) {
   setTeacherClasses(userId, toIdArray(body.class_ids_tahfid), "tahfid");
-  setTeacherClasses(userId, toIdArray(body.class_ids_tilawati), "tilawati");
 }
 
 pengguna.get("/", (c) => {
@@ -38,14 +37,12 @@ pengguna.get("/", (c) => {
     .all() as User[];
 
   const rows = db
-    .prepare("SELECT user_id, class_id, subject FROM class_teachers")
-    .all() as { user_id: number; class_id: number; subject: TeachingSubject }[];
+    .prepare("SELECT user_id, class_id FROM class_teachers WHERE subject = 'tahfid'")
+    .all() as { user_id: number; class_id: number }[];
 
-  const assignmentsTahfid: Record<number, number[]> = {};
-  const assignmentsTilawati: Record<number, number[]> = {};
+  const assignments: Record<number, number[]> = {};
   for (const row of rows) {
-    const target = row.subject === "tilawati" ? assignmentsTilawati : assignmentsTahfid;
-    (target[row.user_id] ||= []).push(row.class_id);
+    (assignments[row.user_id] ||= []).push(row.class_id);
   }
 
   return c.html(
@@ -53,8 +50,7 @@ pengguna.get("/", (c) => {
       user={user}
       users={users}
       classes={listClasses()}
-      assignmentsTahfid={assignmentsTahfid}
-      assignmentsTilawati={assignmentsTilawati}
+      assignments={assignments}
       adminCount={countAdmins()}
     />
   );

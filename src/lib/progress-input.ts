@@ -8,9 +8,9 @@ type ResolveProgressUpdateInputParams = {
   hasExistingEntry: boolean;
   surahName: string;
   surahTotalAyahs: number;
-  /** Kata benda satuan pada pesan galat, default "Surah" (dipakai juga untuk "Jilid"). */
+  /** Kata benda satuan pada pesan galat, default "Surah". */
   itemWord?: string;
-  /** Kata benda posisi pada pesan galat, default "ayat" (dipakai juga untuk "halaman"). */
+  /** Kata benda posisi pada pesan galat, default "ayat". */
   positionWord?: string;
 };
 

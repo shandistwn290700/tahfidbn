@@ -2,12 +2,6 @@ import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.ts";
 import { getRankedStudents, getSummaryStats, normaliseSort } from "../lib/progress-calc.ts";
 import {
-  getRankedTilawatiStudents,
-  getTilawatiSummaryStats,
-  normaliseTilawatiSort,
-} from "../lib/tilawati-calc.ts";
-import { getRecapRankedStudents, normaliseRecapSort } from "../lib/recap-calc.ts";
-import {
   getPeriodRankedStudents,
   normalisePeriodSort,
   normalisePeriodJenis,
@@ -16,8 +10,6 @@ import { getMidSemesterRange, getFullSemesterRange } from "../lib/settings.ts";
 import { listClasses } from "../lib/access.ts";
 import { readInt, readOptionalInt } from "../lib/http.ts";
 import { LeaderboardPage } from "../views/pages/LeaderboardPage.tsx";
-import { TilawatiLeaderboardPage } from "../views/pages/TilawatiLeaderboardPage.tsx";
-import { RecapLeaderboardPage } from "../views/pages/RecapLeaderboardPage.tsx";
 import { PeriodReportPage } from "../views/pages/PeriodReportPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -67,80 +59,11 @@ leaderboard.get("/", (c) => {
   );
 });
 
-leaderboard.get("/tilawati", (c) => {
-  const user = c.get("user");
-
-  const search = (c.req.query("cari") || "").trim();
-  const sort = normaliseTilawatiSort(c.req.query("urut"));
-  const classId = readOptionalInt(c.req.query("kelas"));
-  const page = readInt(c.req.query("hal"), 1, { min: 1, max: 100_000 });
-
-  const unfiltered = !search && classId === null && sort === "jilid";
-
-  const result = getRankedTilawatiStudents({
-    search,
-    classId,
-    sort,
-    page,
-    perPage: PER_PAGE,
-    excludeTopThree: unfiltered,
-  });
-
-  return c.html(
-    <TilawatiLeaderboardPage
-      user={user}
-      classes={listClasses()}
-      stats={getTilawatiSummaryStats()}
-      topThree={result.topThree}
-      showPodium={unfiltered}
-      members={result.pageItems}
-      total={result.total}
-      page={result.page}
-      totalPages={result.totalPages}
-      perPage={PER_PAGE}
-      search={search}
-      sort={sort}
-      classId={classId}
-    />
-  );
-});
-
-leaderboard.get("/rekap", (c) => {
-  const user = c.get("user");
-
-  const search = (c.req.query("cari") || "").trim();
-  const sort = normaliseRecapSort(c.req.query("urut"));
-  const classId = readOptionalInt(c.req.query("kelas"));
-  const page = readInt(c.req.query("hal"), 1, { min: 1, max: 100_000 });
-
-  const unfiltered = !search && classId === null && sort === "persen";
-
-  const result = getRecapRankedStudents({
-    search,
-    classId,
-    sort,
-    page,
-    perPage: PER_PAGE,
-    excludeTopThree: unfiltered,
-  });
-
-  return c.html(
-    <RecapLeaderboardPage
-      user={user}
-      classes={listClasses()}
-      topThree={result.topThree}
-      showPodium={unfiltered}
-      members={result.pageItems}
-      total={result.total}
-      page={result.page}
-      totalPages={result.totalPages}
-      perPage={PER_PAGE}
-      search={search}
-      sort={sort}
-      classId={classId}
-    />
-  );
-});
+// Papan Tilawati dan Rekapitulasi sudah dihapus. Alamat lamanya bisa saja masih
+// tersimpan di bookmark atau riwayat peramban guru, jadi diarahkan ke papan Tahfid
+// alih-alih memunculkan halaman 404.
+leaderboard.get("/tilawati", (c) => c.redirect("/leaderboard"));
+leaderboard.get("/rekap", (c) => c.redirect("/leaderboard"));
 
 leaderboard.get("/periode", (c) => {
   const user = c.get("user");

@@ -8,7 +8,6 @@ import { getSessionUser, cleanExpiredSessions, ensureDefaultAdmin } from "./lib/
 import { authRoutes } from "./routes/auth.ts";
 import { leaderboardRoutes } from "./routes/leaderboard.tsx";
 import { progressRoutes } from "./routes/progress.tsx";
-import { tilawatiRoutes } from "./routes/tilawati.tsx";
 import { laporanRoutes } from "./routes/laporan.tsx";
 import { quranRoutes } from "./routes/quran.tsx";
 import { akunRoutes } from "./routes/akun.tsx";
@@ -80,7 +79,6 @@ app.get("/login", (c) => {
 app.route("/auth", authRoutes);
 app.route("/leaderboard", leaderboardRoutes);
 app.route("/progress", progressRoutes);
-app.route("/progress/tilawati", tilawatiRoutes);
 app.route("/laporan", laporanRoutes);
 app.route("/quran", quranRoutes);
 app.route("/akun", akunRoutes);

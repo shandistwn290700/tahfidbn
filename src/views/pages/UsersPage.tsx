@@ -58,36 +58,24 @@ const ClassPicker: FC<{
   );
 };
 
-/** Dua kelompok kelas ampuan sekaligus — Tahfid dan Tilawati punya guru yang bisa berbeda. */
-const SubjectClassPickers: FC<{
+/** Kelas yang dicentang menentukan siswa mana yang hafalannya boleh diinput guru ini. */
+const TeacherClassPicker: FC<{
   classes: ClassRoom[];
-  selectedTahfid: number[];
-  selectedTilawati: number[];
+  selected: number[];
   idPrefix: string;
-}> = ({ classes, selectedTahfid, selectedTilawati, idPrefix }) => (
+}> = ({ classes, selected, idPrefix }) => (
   <div class="mt-5 space-y-4">
     <div>
       <span class={LABEL}>Kelas Ampuan &mdash; Hafalan Qur'an (Tahfid)</span>
       <ClassPicker
         classes={classes}
-        selected={selectedTahfid}
+        selected={selected}
         idPrefix={`${idPrefix}-tahfid`}
         fieldName="class_ids_tahfid"
       />
     </div>
-    <div>
-      <span class={LABEL}>Kelas Ampuan &mdash; Capaian Tilawati</span>
-      <ClassPicker
-        classes={classes}
-        selected={selectedTilawati}
-        idPrefix={`${idPrefix}-tilawati`}
-        fieldName="class_ids_tilawati"
-      />
-    </div>
     <p class="text-text-secondary dark:text-text-secondary-dark text-xs">
-      Administrator otomatis dapat menginput kedua jenis di seluruh kelas, tanpa perlu ditugaskan.
-      Guru bisa ditugaskan untuk salah satu jenis saja, keduanya, atau kelas yang berbeda untuk
-      tiap jenis.
+      Administrator otomatis dapat menginput hafalan di seluruh kelas, tanpa perlu ditugaskan.
     </p>
   </div>
 );
@@ -96,10 +84,9 @@ export const UsersPage: FC<{
   user: User;
   users: User[];
   classes: ClassRoom[];
-  assignmentsTahfid: Record<number, number[]>;
-  assignmentsTilawati: Record<number, number[]>;
+  assignments: Record<number, number[]>;
   adminCount: number;
-}> = ({ user, users, classes, assignmentsTahfid, assignmentsTilawati, adminCount }) => {
+}> = ({ user, users, classes, assignments, adminCount }) => {
   const guruCount = users.filter((u) => u.role === "guru").length;
 
   return (
@@ -171,12 +158,7 @@ export const UsersPage: FC<{
             </div>
           </div>
 
-          <SubjectClassPickers
-            classes={classes}
-            selectedTahfid={[]}
-            selectedTilawati={[]}
-            idPrefix="pengguna-baru"
-          />
+          <TeacherClassPicker classes={classes} selected={[]} idPrefix="pengguna-baru" />
 
           <div class="mt-5">
             <button type="submit" class={BTN_PRIMARY}>
@@ -193,22 +175,12 @@ export const UsersPage: FC<{
         ) : (
           <div class="divide-y divide-border-light dark:divide-border-light-dark">
             {users.map((u) => {
-              const kelasTahfid = assignmentsTahfid[u.id] || [];
-              const kelasTilawati = assignmentsTilawati[u.id] || [];
-              const namaKelasTahfid = classes
-                .filter((k) => kelasTahfid.includes(k.id))
+              const kelasAmpuan = assignments[u.id] || [];
+              const namaKelasAmpuan = classes
+                .filter((k) => kelasAmpuan.includes(k.id))
                 .map((k) => k.name)
                 .join(", ");
-              const namaKelasTilawati = classes
-                .filter((k) => kelasTilawati.includes(k.id))
-                .map((k) => k.name)
-                .join(", ");
-              const ringkasanKelas = [
-                namaKelasTahfid ? `Tahfid: ${namaKelasTahfid}` : "",
-                namaKelasTilawati ? `Tilawati: ${namaKelasTilawati}` : "",
-              ]
-                .filter(Boolean)
-                .join(" • ");
+              const ringkasanKelas = namaKelasAmpuan ? `Tahfid: ${namaKelasAmpuan}` : "";
               const diriSendiri = u.id === user.id;
               const adminTerakhir = u.role === "admin" && adminCount <= 1;
 
@@ -303,10 +275,9 @@ export const UsersPage: FC<{
 
                       {adminTerakhir && <input type="hidden" name="role" value="admin" />}
 
-                      <SubjectClassPickers
+                      <TeacherClassPicker
                         classes={classes}
-                        selectedTahfid={kelasTahfid}
-                        selectedTilawati={kelasTilawati}
+                        selected={kelasAmpuan}
                         idPrefix={`pengguna-${u.id}`}
                       />
 

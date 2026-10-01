@@ -1,7 +1,7 @@
 # Tahfiz Community
 
-Aplikasi pencatatan dan pemeringkatan hafalan Al-Qur'an (Tahfid) serta capaian bacaan
-Tilawati untuk sekolah/TPQ. Dibangun dengan [Bun](https://bun.sh), [Hono](https://hono.dev),
+Aplikasi pencatatan dan pemeringkatan hafalan Al-Qur'an (Tahfid) untuk sekolah/TPQ.
+Dibangun dengan [Bun](https://bun.sh), [Hono](https://hono.dev),
 dan SQLite — ringan, tanpa basis data terpisah yang perlu dipasang, dan dirancang untuk tetap
 berjalan penuh di jaringan lokal sekolah walau internet mati.
 
@@ -33,21 +33,17 @@ kembali oleh sekolah atau TPQ mana pun yang membutuhkan (lihat [LICENSE](LICENSE
 
 - **Papan Peringkat Tahfid** — capaian hafalan seluruh siswa, podium tiga besar, peringkat
   per kelas, tren pekanan
-- **Papan Peringkat Tilawati** — peringkat berdasarkan jilid selesai dan jumlah halaman
-  terbanyak (standar 6 jilid, 247 halaman)
-- **Rekapitulasi** — rata-rata persentase capaian Tahfid dan Tilawati tiap siswa dalam satu
-  papan gabungan
-- **Laporan Periode** — rekap capaian tengah semester dan semester penuh, berdasarkan
+- **Laporan Periode** — rekap capaian hafalan tengah semester dan semester penuh, berdasarkan
   tanggal semester yang diatur admin, dengan cetak PDF per siswa
-- **Input Hafalan Qur'an & Capaian Tilawati** — guru mencatat posisi hafalan/bacaan tiap
-  siswa di kelas yang ia ampu, dengan riwayat lengkap tersimpan
+- **Input Hafalan Qur'an** — guru mencatat posisi hafalan tiap siswa di kelas yang ia ampu,
+  dengan riwayat lengkap tersimpan
 - **Laporan Pekanan** — PDF otomatis per siswa (dan ZIP sekelas), berisi foto, nama, dan
   capaian pekan berjalan; dibuat langsung oleh aplikasi (`pdfkit`), tanpa layanan luar
 - **Integrasi Canva (opsional)** — cetak Laporan Pekanan lewat desain Brand Template Canva
   sendiri, diisi otomatis lewat Autofill API; lihat [panduan lengkap](docs/CANVA-SETUP.md)
 - **Al-Qur'an digital** — teks lengkap 114 surah dengan penanda baca terakhir per pengguna
 - **Administrasi** — kelola kelas, siswa (termasuk impor massal dari Excel dan unggah foto
-  massal dari ZIP), dan akun guru/admin dengan penugasan kelas terpisah per jenis
+  massal dari ZIP), dan akun guru/admin beserta kelas ampuannya
 - **Backup & pemulihan** — cadangkan dan pulihkan seluruh basis data langsung dari menu
   Pengaturan, termasuk cadangan otomatis sebelum migrasi struktur
 
@@ -55,11 +51,8 @@ kembali oleh sekolah atau TPQ mana pun yang membutuhkan (lihat [LICENSE](LICENSE
 
 | Peran | Bisa melakukan |
 |---|---|
-| **Administrator** | Semua menu: mengelola kelas, siswa, akun pengguna, pengaturan aplikasi, serta menginput Tahfid maupun Tilawati seluruh kelas |
-| **Guru** | Melihat seluruh papan peringkat dan membaca Al-Qur'an, tetapi hanya bisa menginput data pada kelas dan **jenis** (Tahfid dan/atau Tilawati) yang ia ampu |
-
-Satu guru bisa ditugaskan berbeda per jenis — misalnya hanya mengampu Tilawati di kelas 6A
-tanpa hak input Tahfid — karena penugasan kelas disimpan terpisah untuk tiap jenis.
+| **Administrator** | Semua menu: mengelola kelas, siswa, akun pengguna, pengaturan aplikasi, serta menginput hafalan seluruh kelas |
+| **Guru** | Melihat seluruh papan peringkat dan membaca Al-Qur'an, tetapi hanya bisa menginput hafalan pada kelas yang ia ampu |
 
 **Siswa tidak memiliki akun.** Data siswa dikelola administrator melalui menu Administrasi,
 dan capaiannya dicatatkan oleh guru. Ini pembeda penting dari kebanyakan aplikasi sejenis:
@@ -168,9 +161,7 @@ Bun memuat `.env` secara otomatis — tidak perlu paket `dotenv`.
 
 1. Masuk sebagai admin dengan akun dari `.env`, lalu ganti passwordnya lewat menu **Akun**
 2. **Administrasi › Kelas** — buat kelas, misalnya `1A`, `6B`
-3. **Administrasi › Pengguna** — buat akun guru, centang kelas yang ia ampu, terpisah untuk
-   Tahfid dan untuk Tilawati (guru bisa dicentang salah satu, keduanya, atau kelas berbeda
-   untuk tiap jenis)
+3. **Administrasi › Pengguna** — buat akun guru, lalu centang kelas yang ia ampu
 4. **Administrasi › Siswa** — tambahkan siswa. Untuk satu kelas penuh, tersedia tiga cara:
    satu per satu, tempel banyak nama sekaligus (`NIS,Nama` per baris), atau impor dari
    berkas Excel. Foto siswa bisa diunggah satu-satu atau massal lewat berkas ZIP
@@ -178,8 +169,8 @@ Bun memuat `.env` secara otomatis — tidak perlu paket `dotenv`.
 5. **Administrasi › Pengaturan › Laporan Pekanan** — isi logo, nama sekolah, kontak
    (website/WA/Instagram/TikTok), dan **tanggal mulai semester** (dasar penghitungan
    "Laporan Pekanan ke-N" dan Laporan Periode)
-6. Guru masuk, membuka **Input › Hafalan Qur'an** atau **Input › Capaian Tilawati** sesuai
-   penugasannya, memilih kelas, lalu mencatat capaian tiap siswa secara berkala
+6. Guru masuk, membuka **Input › Hafalan Qur'an**, memilih kelas, lalu mencatat capaian
+   tiap siswa secara berkala
 
 ## Perintah
 
@@ -205,12 +196,16 @@ menyalin berkas mentah):
 - Versi ketika hafalan masih menempel pada akun pengguna → dicadangkan sebagai
   `data/ngaji.backup-pra-siswa-<waktu>.db`, lalu setiap akun non-admin diubah menjadi data
   siswa beserta seluruh hafalannya, dan akun loginnya dilepas
-- Versi sebelum penugasan guru dibedakan per jenis (Tahfid/Tilawati) → dicadangkan sebagai
+- Versi sebelum penugasan guru menyimpan jenis → dicadangkan sebagai
   `data/ngaji.backup-pra-subjek-guru-<waktu>.db`, lalu setiap penugasan guru lama otomatis
-  mendapat akses kedua jenis, supaya tidak ada guru yang kehilangan akses
+  mendapat akses Tahfid, supaya tidak ada guru yang kehilangan akses
+- Versi yang masih memuat fitur Tilawati → dicadangkan sebagai
+  `data/ngaji.backup-pra-hapus-tilawati-<waktu>.db`, lalu tabel capaian dan riwayat Tilawati
+  serta penugasan guru Tilawati dihapus. Bila cadangan gagal dibuat, penghapusan ditunda
+  sampai start berikutnya. Data Tilawati lama hanya bisa diambil kembali dari cadangan ini
 
-Tidak ada data hafalan atau capaian Tilawati yang hilang akibat migrasi ini. Migrasi
-bersifat idempoten — aman dijalankan berulang kali (mis. saat menyalakan ulang server).
+Migrasi tidak menyentuh data hafalan Tahfid, dan bersifat idempoten — aman dijalankan
+berulang kali (mis. saat menyalakan ulang server).
 
 ## Laporan Pekanan (PDF bawaan)
 
@@ -320,9 +315,9 @@ src/
   index.tsx              Titik masuk aplikasi, menyiapkan basis data & seluruh rute
   db/                     Koneksi, skema, dan migrasi basis data
   lib/                    Logika inti: sesi, hak akses, perhitungan peringkat, laporan, dll
-  routes/                 Rute Hono, dikelompokkan per area (progress, tilawati, laporan, dll)
+  routes/                 Rute Hono, dikelompokkan per area (progress, laporan, dll)
   views/                  Komponen JSX (hono/jsx) untuk seluruh tampilan
-  data/                   Metadata statis Al-Qur'an dan Tilawati
+  data/                   Metadata statis Al-Qur'an
 data/
   ngaji.db                Basis data (dibuat otomatis, tidak ikut repositori)
   photos/                 Foto siswa (tidak ikut repositori)

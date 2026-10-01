@@ -108,32 +108,6 @@ function createProgressTables() {
 
     CREATE INDEX IF NOT EXISTS idx_progress_log_student ON progress_log(student_id);
     CREATE INDEX IF NOT EXISTS idx_progress_log_time ON progress_log(logged_at);
-
-    CREATE TABLE IF NOT EXISTS tilawati_entries (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      student_id   INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-      jilid_number INTEGER NOT NULL,
-      last_page    INTEGER NOT NULL,
-      completed    INTEGER NOT NULL DEFAULT 0,
-      created_at   TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
-      UNIQUE(student_id, jilid_number)
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_tilawati_student ON tilawati_entries(student_id);
-
-    CREATE TABLE IF NOT EXISTS tilawati_log (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      student_id   INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-      recorded_by  INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      jilid_number INTEGER NOT NULL,
-      page_from    INTEGER NOT NULL,
-      page_to      INTEGER NOT NULL,
-      logged_at    TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_tilawati_log_student ON tilawati_log(student_id);
-    CREATE INDEX IF NOT EXISTS idx_tilawati_log_time ON tilawati_log(logged_at);
   `);
 }
 

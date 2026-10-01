@@ -4,7 +4,7 @@ import { authMiddleware, adminMiddleware } from "../../middleware/auth.ts";
 import { listTeachers, setClassTeachers } from "../../lib/access.ts";
 import { readInt, redirectWith } from "../../lib/http.ts";
 import { ClassesPage } from "../../views/pages/ClassesPage.tsx";
-import type { Env, ClassRoomSummary, TeachingSubject } from "../../types.ts";
+import type { Env, ClassRoomSummary } from "../../types.ts";
 
 const kelas = new Hono<Env>();
 
@@ -20,23 +20,24 @@ function toIdArray(value: unknown): number[] {
     .filter((v) => Number.isFinite(v));
 }
 
-// Seorang guru bisa punya dua baris class_teachers untuk kelas yang sama (satu per
-// jenis, Tahfid dan Tilawati) — DISTINCT di sini mencegah guru itu terhitung/tertulis
-// dua kali pada ringkasan jumlah dan nama pengampu.
+// Hanya penugasan Tahfid yang dihitung: itulah satu-satunya jenis yang memberi hak
+// input. DISTINCT tetap dipasang supaya guru tidak tertulis dua kali bila kelak ada
+// jenis lain yang ditambahkan.
 function loadClasses(): ClassRoomSummary[] {
   return db
     .prepare(
       `SELECT c.*,
               (SELECT COUNT(*) FROM students s WHERE s.class_id = c.id) AS student_count,
               (SELECT COUNT(*) FROM (
-                SELECT DISTINCT user_id FROM class_teachers ct WHERE ct.class_id = c.id
+                SELECT DISTINCT user_id FROM class_teachers ct
+                WHERE ct.class_id = c.id AND ct.subject = 'tahfid'
               )) AS teacher_count,
               COALESCE((
                 SELECT GROUP_CONCAT(u.name, ', ')
                 FROM (
                   SELECT DISTINCT ct.user_id
                   FROM class_teachers ct
-                  WHERE ct.class_id = c.id
+                  WHERE ct.class_id = c.id AND ct.subject = 'tahfid'
                 ) du
                 JOIN users u ON u.id = du.user_id
               ), '') AS teacher_names
@@ -50,14 +51,12 @@ kelas.get("/", (c) => {
   const user = c.get("user");
 
   const teacherAssignments = db
-    .prepare("SELECT class_id, user_id, subject FROM class_teachers")
-    .all() as { class_id: number; user_id: number; subject: TeachingSubject }[];
+    .prepare("SELECT class_id, user_id FROM class_teachers WHERE subject = 'tahfid'")
+    .all() as { class_id: number; user_id: number }[];
 
-  const assignmentsTahfid: Record<number, number[]> = {};
-  const assignmentsTilawati: Record<number, number[]> = {};
+  const assignments: Record<number, number[]> = {};
   for (const row of teacherAssignments) {
-    const target = row.subject === "tilawati" ? assignmentsTilawati : assignmentsTahfid;
-    (target[row.class_id] ||= []).push(row.user_id);
+    (assignments[row.class_id] ||= []).push(row.user_id);
   }
 
   return c.html(
@@ -65,8 +64,7 @@ kelas.get("/", (c) => {
       user={user}
       classes={loadClasses()}
       teachers={listTeachers()}
-      assignmentsTahfid={assignmentsTahfid}
-      assignmentsTilawati={assignmentsTilawati}
+      assignments={assignments}
     />
   );
 });
@@ -96,7 +94,6 @@ kelas.post("/", async (c) => {
 
   const newClassId = Number(result.lastInsertRowid);
   setClassTeachers(newClassId, toIdArray(body.teacher_ids_tahfid), "tahfid");
-  setClassTeachers(newClassId, toIdArray(body.teacher_ids_tilawati), "tilawati");
 
   return redirectWith(c, BASE, "success", `Kelas "${name}" berhasil ditambahkan.`);
 });
@@ -127,7 +124,6 @@ kelas.post("/:id", async (c) => {
   ).run(name, description || null, classId);
 
   setClassTeachers(classId, toIdArray(body.teacher_ids_tahfid), "tahfid");
-  setClassTeachers(classId, toIdArray(body.teacher_ids_tilawati), "tilawati");
 
   return redirectWith(c, BASE, "success", `Kelas "${name}" berhasil diperbarui.`);
 });

@@ -37,6 +37,9 @@ progress.get("/", (c) => {
   );
 });
 
+// Input Tilawati sudah dihapus; alamat lamanya diarahkan ke input hafalan.
+progress.get("/tilawati", (c) => c.redirect(BASE));
+
 progress.post("/", async (c) => {
   const user = c.get("user");
   const body = await c.req.parseBody();

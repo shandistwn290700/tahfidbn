@@ -38,15 +38,10 @@ function isAdminLinkActive(currentPath: string, href: string): boolean {
 
 const PAPAN_PERINGKAT_LINKS = [
   { href: "/leaderboard", label: "Tahfid Al-Qur'an", icon: "auto_stories" },
-  { href: "/leaderboard/tilawati", label: "Tilawati", icon: "import_contacts" },
-  { href: "/leaderboard/rekap", label: "Rekapitulasi", icon: "summarize" },
   { href: "/leaderboard/periode", label: "Laporan Periode", icon: "event_note" },
 ];
 
-const INPUT_LINKS = [
-  { href: "/progress", label: "Hafalan Qur'an", icon: "auto_stories" },
-  { href: "/progress/tilawati", label: "Capaian Tilawati", icon: "import_contacts" },
-];
+const INPUT_LINKS = [{ href: "/progress", label: "Hafalan Qur'an", icon: "auto_stories" }];
 
 /** Grup dropdown aktif bila berada pada salah satu halamannya. */
 function isGroupActive(currentPath: string, links: { href: string }[]): boolean {

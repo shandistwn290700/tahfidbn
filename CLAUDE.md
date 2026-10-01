@@ -51,55 +51,54 @@ Ini pembeda utama dari versi awal aplikasi. Yang bisa login hanya **admin** dan 
 | `users` | akun yang bisa login; kolom `role` hanya `admin` atau `guru` |
 | `classes` | daftar kelas (nama unik, keterangan opsional) |
 | `students` | siswa, menunjuk ke satu `class_id` (boleh NULL = belum berkelas) |
-| `class_teachers` | relasi guru ⇄ kelas ⇄ **jenis** (`subject`: `tahfid`/`tilawati`); menentukan hak input. Kunci `(class_id, user_id, subject)` — satu guru bisa punya baris terpisah per jenis |
+| `class_teachers` | relasi guru ⇄ kelas ⇄ **jenis** (`subject`, kini hanya `tahfid`); menentukan hak input. Kunci `(class_id, user_id, subject)` — kolom jenis dipertahankan agar jenis baru bisa ditambah tanpa migrasi struktur |
 | `progress_entries` | hafalan Tahfid per siswa per surah, di-upsert; kunci unik `(student_id, surah_number)` |
 | `progress_log` | riwayat append-only Tahfid, menyimpan `recorded_by` (guru yang menginput) |
-| `tilawati_entries` | capaian Tilawati per siswa per jilid, di-upsert; kunci unik `(student_id, jilid_number)` |
-| `tilawati_log` | riwayat append-only Tilawati |
 | `reading_bookmarks` | penanda baca Al-Qur'an, milik **pengguna** yang login, bukan siswa |
+
+Fitur **Tilawati dan papan Rekapitulasi sudah dihapus** (Oktober 2026). Alamat lamanya
+(`/leaderboard/tilawati`, `/leaderboard/rekap`, `/progress/tilawati`) hanya mengarahkan ulang
+ke halaman Tahfid. Jangan menambahkan kembali rujukan ke tabel `tilawati_*` — tabel itu
+dihapus oleh migrasi.
 
 ### Hak akses
 
 - `authMiddleware` — wajib login, menaruh `User` di `c.get("user")`
 - `adminMiddleware` — hanya admin; dipasang pada seluruh rute `/administrasi/*`
 - `src/lib/access.ts` — `canTeachClass()` dan `canTeachStudent()` menentukan apakah seorang
-  guru boleh menginput data, dengan parameter `subject: "tahfid" | "tilawati"` (default
-  `"tahfid"`). Admin selalu boleh, untuk jenis apa pun. **Rute POST wajib memanggil
-  pemeriksaan ini dengan `subject` yang sesuai**, jangan bersandar pada tampilan yang
-  menyembunyikan tombol. Penugasan kelas per guru diubah lewat `setTeacherClasses()` /
-  `setClassTeachers()` — keduanya butuh argumen `subject` dan hanya menimpa baris milik
-  jenis itu, sehingga mengedit penugasan Tahfid tidak menghapus penugasan Tilawati guru
-  yang sama (dan sebaliknya).
+  guru boleh menginput data, dengan parameter `subject: TeachingSubject` (kini hanya
+  `"tahfid"`, juga default-nya). Admin selalu boleh. **Rute POST wajib memanggil
+  pemeriksaan ini**, jangan bersandar pada tampilan yang menyembunyikan tombol. Penugasan
+  kelas per guru diubah lewat `setTeacherClasses()` / `setClassTeachers()` — keduanya butuh
+  argumen `subject` dan hanya menimpa baris milik jenis itu.
 
-### Alur perhitungan hafalan & Tilawati
+### Alur perhitungan hafalan
 
 - `src/data/quran-meta.ts` — metadata statis Tahfid (114 surah, batas juz)
-- `src/data/tilawati-meta.ts` — metadata statis Tilawati (6 jilid, standar halaman per jilid:
-  40/44/44/44/44/31, total 247 halaman)
 - `src/lib/progress-calc.ts` — perhitungan peringkat Tahfid. `getRankedStudents()` sengaja
   membaca **tiga query saja** (siswa, hafalan, tren) lalu menghitung di memori; jangan
-  kembalikan pola satu query per siswa. Sama polanya di `src/lib/tilawati-calc.ts`
-  (`getRankedTilawatiStudents()`) untuk Tilawati.
-- `src/lib/recap-calc.ts` — papan Rekapitulasi: rata-rata `overallProgressPercent()` (Tahfid)
-  dan `overallTilawatiPercent()` (Tilawati) per siswa. Siswa tanpa catatan pada salah satu
-  jenis tetap tampil, jenis yang kosong dihitung 0%.
-- Persentase memakai satu angka desimal (berlaku untuk Tahfid, Tilawati, dan Rekapitulasi).
-  Dibulatkan ke bilangan bulat, capaian mayoritas santri akan tampil 0% dan papan peringkat
-  kehilangan fungsinya.
-- Peringkat Tahfid: juz selesai → jumlah ayat → nama. Peringkat Tilawati: jilid selesai →
-  jumlah halaman → nama (pola yang sama, sengaja disamakan).
+  kembalikan pola satu query per siswa.
+- `src/lib/period-report.ts` — Laporan Periode (tengah semester / semester penuh): ayat
+  bertambah selama rentang tanggal, juz selesai, dan persentase Tahfid; pola query sama.
+- Persentase memakai satu angka desimal. Dibulatkan ke bilangan bulat, capaian mayoritas
+  santri akan tampil 0% dan papan peringkat kehilangan fungsinya.
+- Peringkat Tahfid: juz selesai → jumlah ayat → nama.
 
 ### Migrasi
 
 `src/db/migrate.ts` berjalan otomatis saat start, membuat cadangan basis data lebih dulu
-lewat `VACUUM INTO` untuk setiap perubahan struktur. Migrasi bersifat idempoten. Dua yang
+lewat `VACUUM INTO` untuk setiap perubahan struktur. Migrasi bersifat idempoten. Yang
 relevan:
 
 - **Struktur lama** (`progress_entries.user_id`) — memindahkan setiap akun non-admin
   menjadi data siswa beserta hafalannya, dan melepas akun loginnya.
 - **`class_teachers` tanpa kolom `subject`** — menambahkan kolom itu dan mengganti kunci
-  primer menjadi `(class_id, user_id, subject)`. Setiap baris lama digandakan menjadi dua
-  (`tahfid` dan `tilawati`) supaya guru yang sudah ditugaskan tidak kehilangan akses.
+  primer menjadi `(class_id, user_id, subject)`. Setiap baris lama menjadi baris `tahfid`
+  supaya guru yang sudah ditugaskan tidak kehilangan akses.
+- **Sisa Tilawati** (`migrateRemoveTilawati`) — membuang tabel `tilawati_entries`,
+  `tilawati_log`, dan baris `class_teachers` berjenis `tilawati`. Cadangan
+  `ngaji.backup-pra-hapus-tilawati-*.db` wajib berhasil dibuat lebih dulu; kalau gagal,
+  penghapusan ditunda ke start berikutnya.
 
 ### Berkas statis
 
@@ -135,12 +134,10 @@ di `src/lib/http.ts`.
 | Sesi, hash password, akun | `src/lib/session.ts` |
 | Hak akses guru/kelas | `src/lib/access.ts` |
 | Perhitungan peringkat Tahfid | `src/lib/progress-calc.ts` |
-| Perhitungan peringkat Tilawati | `src/lib/tilawati-calc.ts` |
-| Perhitungan Rekapitulasi (rata-rata Tahfid+Tilawati) | `src/lib/recap-calc.ts` |
+| Laporan Periode (tengah semester / semester penuh) | `src/lib/period-report.ts` |
 | Laporan Pekanan (PDF per siswa, ZIP per kelas) | `src/lib/weekly-report.ts`, `src/routes/laporan.tsx` |
 | Validasi masukan angka & redirect | `src/lib/http.ts` |
 | Metadata Al-Qur'an | `src/data/quran-meta.ts` |
-| Metadata jilid Tilawati | `src/data/tilawati-meta.ts` |
 | Tipe bersama | `src/types.ts` |
 | Tema Tailwind | `tailwind.config.js` |
 | Komponen UI bersama | `src/views/components/ui.tsx` |

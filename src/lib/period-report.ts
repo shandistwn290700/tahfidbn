@@ -1,7 +1,6 @@
 import { db } from "../db/connection.ts";
 import { overallProgressPercent, juzCompletedCount } from "./progress-calc.ts";
-import { overallTilawatiPercent, jilidCompletedCount } from "./tilawati-calc.ts";
-import type { ProgressEntry, TilawatiEntry } from "../types.ts";
+import type { ProgressEntry } from "../types.ts";
 
 export type PeriodJenis = "tengah" | "penuh";
 
@@ -39,28 +38,12 @@ export function getPeriodAyahMemorized(studentId: number, from: string, to: stri
   return row.delta;
 }
 
-/** Total halaman Tilawati yang ditambahkan seorang siswa dalam rentang tanggal tertentu. */
-export function getPeriodPageRead(studentId: number, from: string, to: string): number {
-  const row = db
-    .prepare(
-      `SELECT COALESCE(SUM(page_to - page_from), 0) AS delta FROM tilawati_log
-       WHERE student_id = ? AND date(logged_at) >= date(?) AND date(logged_at) <= date(?)`
-    )
-    .get(studentId, from, to) as { delta: number };
-  return row.delta;
-}
-
-function sumDeltaInRange(
-  table: "progress_log" | "tilawati_log",
-  fromCol: string,
-  toCol: string,
-  from: string,
-  to: string
-): Map<number, number> {
+/** Total ayat yang ditambahkan setiap siswa dalam rentang tanggal, dalam satu query. */
+function sumAyahDeltaInRange(from: string, to: string): Map<number, number> {
   const rows = db
     .prepare(
-      `SELECT student_id, COALESCE(SUM(${toCol} - ${fromCol}), 0) AS delta
-       FROM ${table}
+      `SELECT student_id, COALESCE(SUM(ayah_to - ayah_from), 0) AS delta
+       FROM progress_log
        WHERE date(logged_at) >= date(?) AND date(logged_at) <= date(?)
        GROUP BY student_id`
     )
@@ -89,19 +72,15 @@ export interface PeriodStudent {
   rank: number;
   class_rank: number;
   ayat_periode: number;
-  halaman_periode: number;
   juz_completed: number;
-  jilid_completed: number;
   tahfid_percent: number;
-  tilawati_percent: number;
-  recap_percent: number;
 }
 
 /**
- * Rekap capaian seluruh siswa dalam satu rentang tanggal — dipakai untuk
+ * Rekap capaian hafalan seluruh siswa dalam satu rentang tanggal — dipakai untuk
  * Laporan Tengah Semester dan Laporan Semester. Pola query sama seperti
- * getRankedStudents()/getRecapRankedStudents(): sedikit query lalu dihitung
- * di memori, bukan satu query per siswa.
+ * getRankedStudents(): sedikit query lalu dihitung di memori, bukan satu query
+ * per siswa.
  */
 export function getPeriodRankedStudents(params: {
   from: string;
@@ -129,21 +108,14 @@ export function getPeriodRankedStudents(params: {
     )
     .all() as StudentRow[];
 
-  const ayatDelta = sumDeltaInRange("progress_log", "ayah_from", "ayah_to", params.from, params.to);
-  const halamanDelta = sumDeltaInRange("tilawati_log", "page_from", "page_to", params.from, params.to);
+  const ayatDelta = sumAyahDeltaInRange(params.from, params.to);
 
   const tahfidByStudent = groupByStudent(
     db.prepare("SELECT * FROM progress_entries").all() as ProgressEntry[]
   );
-  const tilawatiByStudent = groupByStudent(
-    db.prepare("SELECT * FROM tilawati_entries").all() as TilawatiEntry[]
-  );
 
   const ranked: PeriodStudent[] = allStudents.map((student) => {
     const tahfid = tahfidByStudent.get(student.id) ?? [];
-    const tilawati = tilawatiByStudent.get(student.id) ?? [];
-    const tahfidPercent = overallProgressPercent(tahfid);
-    const tilawatiPercent = overallTilawatiPercent(tilawati);
 
     return {
       id: student.id,
@@ -155,19 +127,14 @@ export function getPeriodRankedStudents(params: {
       rank: 0,
       class_rank: 0,
       ayat_periode: ayatDelta.get(student.id) ?? 0,
-      halaman_periode: halamanDelta.get(student.id) ?? 0,
       juz_completed: juzCompletedCount(tahfid),
-      jilid_completed: jilidCompletedCount(tilawati),
-      tahfid_percent: tahfidPercent,
-      tilawati_percent: tilawatiPercent,
-      recap_percent: Math.round(((tahfidPercent + tilawatiPercent) / 2) * 10) / 10,
+      tahfid_percent: overallProgressPercent(tahfid),
     };
   });
 
-  // Peringkat: aktivitas selama periode (ayat + halaman bertambah) dulu, lalu nama.
+  // Peringkat: ayat yang bertambah selama periode dulu, lalu nama.
   const byAchievement = (a: PeriodStudent, b: PeriodStudent) =>
-    b.ayat_periode + b.halaman_periode - (a.ayat_periode + a.halaman_periode) ||
-    a.name.localeCompare(b.name, "id");
+    b.ayat_periode - a.ayat_periode || a.name.localeCompare(b.name, "id");
 
   const globalOrder = [...ranked].sort(byAchievement);
   globalOrder.forEach((s, i) => {
@@ -213,7 +180,7 @@ export function getPeriodRankedStudents(params: {
         byAchievement(a, b)
     );
   } else if (sort === "persen") {
-    sorted.sort((a, b) => b.recap_percent - a.recap_percent || byAchievement(a, b));
+    sorted.sort((a, b) => b.tahfid_percent - a.tahfid_percent || byAchievement(a, b));
   }
   // sort === "ayat" sudah sesuai urutan byAchievement.
 

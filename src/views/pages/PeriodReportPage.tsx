@@ -7,7 +7,7 @@ import type { PeriodStudent, PeriodJenis } from "../../lib/period-report.ts";
 
 const SORT_OPTIONS = [
   { value: "ayat", label: "Urutkan: Paling aktif periode ini" },
-  { value: "persen", label: "Urutkan: Rekapitulasi tertinggi" },
+  { value: "persen", label: "Urutkan: Persentase hafalan tertinggi" },
   { value: "nama", label: "Urutkan: Nama" },
   { value: "kelas", label: "Urutkan: Kelas" },
 ];
@@ -49,7 +49,7 @@ export const PeriodReportPage: FC<{
       currentPath="/leaderboard/periode"
       title="Laporan Periode"
       heading="Laporan Periode"
-      subheading="Rekap capaian Tahfid & Tilawati siswa selama tengah semester atau satu semester penuh, berdasarkan tanggal semester yang diatur di Pengaturan."
+      subheading="Rekap capaian hafalan Al-Qur'an siswa selama tengah semester atau satu semester penuh, berdasarkan tanggal semester yang diatur di Pengaturan."
       wide
     >
       <div class="flex flex-wrap gap-2 mb-6">

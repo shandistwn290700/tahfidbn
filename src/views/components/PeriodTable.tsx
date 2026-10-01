@@ -53,9 +53,6 @@ const Row: FC<{ member: PeriodStudent; showClassRank: boolean; jenis: PeriodJeni
         <p class="text-text-main dark:text-text-main-dark text-sm font-bold">
           {member.ayat_periode} ayat
         </p>
-        <p class="text-text-secondary dark:text-text-secondary-dark text-xs">
-          {member.halaman_periode} halaman Tilawati
-        </p>
       </div>
 
       <div class="col-span-4 md:col-span-3">
@@ -63,9 +60,9 @@ const Row: FC<{ member: PeriodStudent; showClassRank: boolean; jenis: PeriodJeni
           Kumulatif
         </div>
         <p class="text-text-main dark:text-text-main-dark text-xs">
-          {member.juz_completed} juz &bull; {member.jilid_completed} jilid
+          {member.juz_completed} juz selesai
         </p>
-        <p class="text-primary text-sm font-black">{member.recap_percent}% rekap</p>
+        <p class="text-primary text-sm font-black">{member.tahfid_percent}% hafalan</p>
       </div>
 
       <div class="col-span-2 md:col-span-1 flex md:justify-end items-center">
@@ -130,7 +127,7 @@ export const PeriodTable: FC<{
             description={
               search || classId !== null
                 ? "Coba ubah kata kunci pencarian atau pilih kelas lain."
-                : "Belum ada catatan hafalan/Tilawati pada rentang periode ini."
+                : "Belum ada catatan hafalan pada rentang periode ini."
             }
           />
         ) : (
