@@ -52,6 +52,8 @@ import { BackupPage } from "../../views/pages/BackupPage.tsx";
 import { RestoreDonePage } from "../../views/pages/RestoreDonePage.tsx";
 import { CanvaSettingsPage } from "../../views/pages/CanvaSettingsPage.tsx";
 import type { Env } from "../../types.ts";
+import { publicMessage } from "../../lib/errors.ts";
+import { audit } from "../../lib/logger.ts";
 
 const pengaturan = new Hono<Env>();
 
@@ -79,7 +81,7 @@ pengaturan.post("/nama", async (c) => {
   try {
     setSiteName(siteName);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Gagal menyimpan nama situs.";
+    const message = publicMessage(err, "Gagal menyimpan nama situs.");
     return redirectWith(c, BASE, "error", message);
   }
 
@@ -97,7 +99,7 @@ pengaturan.post("/favicon", async (c) => {
   try {
     await setFaviconFromFile(file);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Gagal mengunggah favicon.";
+    const message = publicMessage(err, "Gagal mengunggah favicon.");
     return redirectWith(c, BASE, "error", message);
   }
 
@@ -138,7 +140,7 @@ pengaturan.post("/laporan/logo", async (c) => {
   try {
     await setReportLogoFromFile(file);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Gagal mengunggah logo laporan.";
+    const message = publicMessage(err, "Gagal mengunggah logo laporan.");
     return redirectWith(c, LAPORAN_BASE, "error", message);
   }
 
@@ -162,7 +164,7 @@ pengaturan.post("/laporan/identitas", async (c) => {
       tiktok: String(body.tiktok || ""),
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Gagal menyimpan identitas laporan.";
+    const message = publicMessage(err, "Gagal menyimpan identitas laporan.");
     return redirectWith(c, LAPORAN_BASE, "error", message);
   }
 
@@ -176,7 +178,7 @@ pengaturan.post("/laporan/semester", async (c) => {
   try {
     setSemesterStart(tanggal);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Tanggal tidak valid.";
+    const message = publicMessage(err, "Tanggal tidak valid.");
     return redirectWith(c, LAPORAN_BASE, "error", message);
   }
 
@@ -195,7 +197,7 @@ pengaturan.post("/laporan/semester-selesai", async (c) => {
   try {
     setSemesterEnd(tanggal);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Tanggal tidak valid.";
+    const message = publicMessage(err, "Tanggal tidak valid.");
     return redirectWith(c, LAPORAN_BASE, "error", message);
   }
 
@@ -243,6 +245,7 @@ pengaturan.get("/backup/unduh", (c) => {
   }
 
   const data = readFileSync(path);
+  audit(c, "cadangan.diunduh", { file: snapshot.filename });
   c.header("Content-Type", "application/octet-stream");
   c.header("Content-Disposition", `attachment; filename="${snapshot.filename}"`);
   return c.body(data);
@@ -258,6 +261,7 @@ pengaturan.get("/backup/unduh/:filename", (c) => {
   }
 
   const data = readFileSync(path);
+  audit(c, "cadangan.diunduh", { file: filename });
   c.header("Content-Type", "application/octet-stream");
   c.header("Content-Disposition", `attachment; filename="${filename}"`);
   return c.body(data);
@@ -273,6 +277,7 @@ pengaturan.post("/backup/hapus", async (c) => {
     return redirectWith(c, BACKUP_BASE, "error", "Berkas cadangan tidak ditemukan.");
   }
 
+  audit(c, "cadangan.dihapus", { file: filename }, "warn");
   return redirectWith(c, BACKUP_BASE, "success", `Cadangan "${filename}" telah dihapus.`);
 });
 
@@ -288,8 +293,11 @@ pengaturan.post("/backup/pulihkan", async (c) => {
   const result = restoreFromUpload(buffer);
 
   if (!result.ok) {
+    audit(c, "cadangan.pemulihan_ditolak", { file: file.name, alasan: result.error }, "warn");
     return redirectWith(c, BACKUP_BASE, "error", result.error);
   }
+
+  audit(c, "cadangan.dipulihkan", { file: file.name, safetyBackup: result.safetyBackup }, "warn");
 
   // Dirender langsung, bukan redirect: sesi yang sedang berjalan mungkin
   // sudah tidak ada lagi pada basis data yang baru dipulihkan, sehingga
@@ -360,6 +368,7 @@ pengaturan.get("/canva/callback", async (c) => {
   deleteCookie(c, OAUTH_VERIFIER_COOKIE, { path: "/" });
 
   if (!code || !state || !verifier || state !== savedState) {
+    audit(c, "canva.callback_ditolak", { message: "state OAuth tidak cocok atau kedaluwarsa" }, "warn");
     return redirectWith(
       c,
       CANVA_BASE,
@@ -371,10 +380,11 @@ pengaturan.get("/canva/callback", async (c) => {
   try {
     await exchangeCodeForToken(code, verifier);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Gagal menghubungkan akun Canva.";
+    const message = publicMessage(err, "Gagal menghubungkan akun Canva.");
     return redirectWith(c, CANVA_BASE, "error", message);
   }
 
+  audit(c, "canva.terhubung");
   // Antrean laporan yang berhenti karena koneksi terputus langsung berlanjut.
   kickReportWorker();
   return redirectWith(c, CANVA_BASE, "success", "Akun Canva berhasil terhubung.");
@@ -382,6 +392,7 @@ pengaturan.get("/canva/callback", async (c) => {
 
 pengaturan.post("/canva/disconnect", (c) => {
   disconnectCanva();
+  audit(c, "canva.diputus");
   return redirectWith(c, CANVA_BASE, "success", "Akun Canva telah diputuskan.");
 });
 

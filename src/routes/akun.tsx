@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.ts";
 import { verifyCredentials, updateUserPassword } from "../lib/session.ts";
 import { redirectWith } from "../lib/http.ts";
+import { audit } from "../lib/logger.ts";
 import { AccountPage } from "../views/pages/AccountPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -33,11 +34,13 @@ akun.post("/password", async (c) => {
 
   const valid = await verifyCredentials(user.username, current);
   if (!valid) {
+    audit(c, "akun.password_lama_salah", {}, "warn");
     return redirectWith(c, BASE, "error", "Password lama tidak benar.");
   }
 
   // Seluruh sesi ikut dikeluarkan, termasuk sesi ini, jadi pengguna login ulang.
   await updateUserPassword(user.id, next);
+  audit(c, "akun.password_diganti");
 
   return c.redirect(
     "/login?success=" + encodeURIComponent("Password berhasil diganti. Silakan masuk kembali.")

@@ -30,8 +30,11 @@ walau perkakas Tailwind belum terpasang. `public/app.css` ikut disimpan di repos
 APP_NAME=Tahfiz Community
 APP_URL=http://localhost:3000
 PORT=3000
+HOST=127.0.0.1             # opsional; isi di VPS di balik nginx, kosongkan untuk LAN sekolah
 ADMIN_USERNAME=admin        # akun admin pertama, dibuat saat tabel users masih kosong
 ADMIN_PASSWORD=...          # minimal 8 karakter
+LOG_DIR=./logs              # opsional; folder log server (mode 700)
+LOG_RETENTION_DAYS=90       # opsional; berkas log lebih tua dihapus otomatis
 ```
 
 ## Arsitektur
@@ -124,6 +127,25 @@ disembunyikan, bukan tampil sebagai tulisan mentah seperti "arrow_upward".
 Rute POST tidak merender halaman; semuanya redirect dengan pesan lewat `redirectWith()`
 di `src/lib/http.ts`.
 
+### Log & pesan galat — server vs layar
+
+- **Layar hanya menerima pesan aman.** Galat yang pesannya untuk pengguna (validasi,
+  konfigurasi yang perlu dibenahi admin) dilempar sebagai `PublicError`
+  (`src/lib/errors.ts`). Di blok `catch`, pakai `publicMessage(err, "pesan cadangan")`,
+  **jangan** `err.message`: galat lain bisa membawa isi respons Canva, SQL, atau jalur
+  berkas. `publicMessage` mencatat galat itu lengkap dan mengembalikan pesan cadangan
+  beserta kode galat 8 karakter. Halaman 500 juga menampilkan kode ini.
+- **Log server** (`src/lib/logger.ts`) — JSON Lines per hari di `LOG_DIR`, folder 700 /
+  berkas 600: `app-*.log` (galat + stack, sistem, migrasi) dan `audit-*.log` (login,
+  perubahan akun, cadangan, Canva, akses ditolak). Cari kode galat dengan
+  `grep <kode> logs/app-*.log`. Jangan memakai `console.*` langsung; pakai `log.info/warn/error`
+  atau `audit(c, "event", {...})`.
+- Kolom bernama mirip `password`, `token`, `secret`, `cookie`, `session`, `code` otomatis
+  disembunyikan. Login gagal hanya mencatat nama pengguna yang **terdaftar**, karena orang
+  kadang tak sengaja mengetik password di kolom nama.
+- `clientIp()` hanya memercayai `X-Real-IP`/`X-Forwarded-For` bila koneksi datang dari
+  loopback (nginx di mesin yang sama).
+
 ### Laporan
 
 - **Laporan Pekanan hanya lewat Canva**, dan **selalu lewat antrean** `src/lib/report-queue.ts`.
@@ -173,6 +195,8 @@ JAVA_HOME="C:/Program Files/Android/Android Studio/jbr" ./gradlew assembleReleas
 | Laporan Pekanan via Canva (OAuth, Autofill, ekspor) | `src/lib/canva.ts` |
 | Antrean FIFO Laporan Pekanan & pekerjanya | `src/lib/report-queue.ts`, `src/routes/laporan.tsx` |
 | Validasi masukan angka & redirect | `src/lib/http.ts` |
+| Log server & audit | `src/lib/logger.ts` |
+| Pesan galat aman untuk layar (`PublicError`) | `src/lib/errors.ts` |
 | Metadata Al-Qur'an | `src/data/quran-meta.ts` |
 | Tipe bersama | `src/types.ts` |
 | Tema Tailwind | `tailwind.config.js` |

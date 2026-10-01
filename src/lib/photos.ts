@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
+import { PublicError } from "./errors.ts";
 
 export const PHOTOS_DIR = join(import.meta.dir, "..", "..", "data", "photos");
 
@@ -32,10 +33,10 @@ function removeExistingPhotoFiles(studentId: number): void {
 export function savePhotoForStudent(studentId: number, ext: string, data: Uint8Array): string {
   const cleanExt = ext.toLowerCase();
   if (!isAllowedPhotoExt(cleanExt)) {
-    throw new Error("Format foto harus JPG, JPEG, PNG, atau WEBP.");
+    throw new PublicError("Format foto harus JPG, JPEG, PNG, atau WEBP.");
   }
   if (data.byteLength > MAX_PHOTO_BYTES) {
-    throw new Error("Ukuran foto melebihi 3MB.");
+    throw new PublicError("Ukuran foto melebihi 3MB.");
   }
 
   removeExistingPhotoFiles(studentId);

@@ -1,5 +1,6 @@
 import { db } from "../db/connection.ts";
 import { APP_NAME } from "../config.ts";
+import { PublicError } from "./errors.ts";
 
 const DEFAULT_SITE_NAME = APP_NAME;
 
@@ -58,8 +59,8 @@ export function getSiteName(): string {
 
 export function setSiteName(name: string): void {
   const trimmed = name.trim();
-  if (!trimmed) throw new Error("Nama situs tidak boleh kosong.");
-  if (trimmed.length > 60) throw new Error("Nama situs maksimal 60 karakter.");
+  if (!trimmed) throw new PublicError("Nama situs tidak boleh kosong.");
+  if (trimmed.length > 60) throw new PublicError("Nama situs maksimal 60 karakter.");
   setSetting(SITE_NAME_KEY, trimmed);
 }
 
@@ -84,13 +85,13 @@ export function hasCustomFavicon(): boolean {
 
 export async function setFaviconFromFile(file: File): Promise<void> {
   if (!file || file.size === 0) {
-    throw new Error("Pilih berkas favicon terlebih dahulu.");
+    throw new PublicError("Pilih berkas favicon terlebih dahulu.");
   }
   if (!ALLOWED_FAVICON_TYPES.includes(file.type)) {
-    throw new Error("Format favicon harus PNG, JPG, ICO, atau SVG.");
+    throw new PublicError("Format favicon harus PNG, JPG, ICO, atau SVG.");
   }
   if (file.size > MAX_FAVICON_BYTES) {
-    throw new Error("Ukuran favicon maksimal 512KB.");
+    throw new PublicError("Ukuran favicon maksimal 512KB.");
   }
 
   const buffer = await file.arrayBuffer();
@@ -109,13 +110,13 @@ export function getReportLogo(): string | null {
 
 export async function setReportLogoFromFile(file: File): Promise<void> {
   if (!file || file.size === 0) {
-    throw new Error("Pilih berkas logo terlebih dahulu.");
+    throw new PublicError("Pilih berkas logo terlebih dahulu.");
   }
   if (!ALLOWED_REPORT_LOGO_TYPES.includes(file.type)) {
-    throw new Error("Format logo laporan harus PNG atau JPEG (SVG tidak didukung untuk PDF).");
+    throw new PublicError("Format logo laporan harus PNG atau JPEG (SVG tidak didukung untuk PDF).");
   }
   if (file.size > MAX_REPORT_LOGO_BYTES) {
-    throw new Error("Ukuran logo laporan maksimal 2MB.");
+    throw new PublicError("Ukuran logo laporan maksimal 2MB.");
   }
 
   const buffer = await file.arrayBuffer();
@@ -138,7 +139,7 @@ export function setReportSchoolName(name: string): void {
     clearSetting(REPORT_SCHOOL_NAME_KEY);
     return;
   }
-  if (trimmed.length > 80) throw new Error("Nama sekolah maksimal 80 karakter.");
+  if (trimmed.length > 80) throw new PublicError("Nama sekolah maksimal 80 karakter.");
   setSetting(REPORT_SCHOOL_NAME_KEY, trimmed);
 }
 
@@ -180,7 +181,7 @@ export function getSemesterStart(): string | null {
 
 export function setSemesterStart(dateStr: string): void {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    throw new Error("Format tanggal tidak valid.");
+    throw new PublicError("Format tanggal tidak valid.");
   }
   setSetting(SEMESTER_START_KEY, dateStr);
 }
@@ -217,7 +218,7 @@ export function getSemesterEnd(): string | null {
 
 export function setSemesterEnd(dateStr: string): void {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    throw new Error("Format tanggal tidak valid.");
+    throw new PublicError("Format tanggal tidak valid.");
   }
   setSetting(SEMESTER_END_KEY, dateStr);
 }

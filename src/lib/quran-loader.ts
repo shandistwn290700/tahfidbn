@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getSurah } from "../data/quran-meta.ts";
+import { PublicError } from "./errors.ts";
 
 export interface QuranAyah {
   number: number;
@@ -21,7 +22,7 @@ function getSurahFilePath(surahNumber: number): string {
 export function getSurahAyahs(surahNumber: number): QuranAyah[] {
   const surah = getSurah(surahNumber);
   if (!surah) {
-    throw new Error("Nomor surah tidak sah.");
+    throw new PublicError("Nomor surah tidak sah.");
   }
 
   const filePath = getSurahFilePath(surahNumber);

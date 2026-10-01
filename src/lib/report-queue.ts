@@ -10,6 +10,8 @@ import {
 } from "./canva.ts";
 import { getReportWeekNumber, getWeeklyAyahMemorized } from "./weekly-report.ts";
 import type { User } from "../types.ts";
+import { publicMessage } from "./errors.ts";
+import { log } from "./logger.ts";
 
 /**
  * Antrean FIFO Laporan Pekanan via Canva.
@@ -404,7 +406,7 @@ async function processItem(item: QueueItem): Promise<number> {
     finalizeJobIfComplete(item.job_id);
     return 0;
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Kesalahan tidak diketahui.";
+    const message = publicMessage(err, "Gagal membuat laporan lewat Canva.", "antrean_laporan.gagal");
 
     if (err instanceof CanvaAuthError) {
       // Bukan salah siswa ini — kembalikan ke antrean tanpa menghabiskan jatah percobaan.
@@ -412,14 +414,17 @@ async function processItem(item: QueueItem): Promise<number> {
       db.prepare(
         "UPDATE report_job_items SET status = 'pending', attempts = attempts - 1, error = ? WHERE id = ?"
       ).run(message, item.id);
-      console.warn(`[antrean-laporan] Berhenti sementara: ${message}`);
+      log.warn("antrean_laporan.berhenti", { message });
       return IDLE_POLL_MS;
     }
 
     if (item.attempts + 1 >= MAX_ATTEMPTS) {
       markItem(item.id, "failed", { error: message });
       finalizeJobIfComplete(item.job_id);
-      console.warn(`[antrean-laporan] ${student.name} gagal setelah ${MAX_ATTEMPTS} percobaan: ${message}`);
+      log.warn("antrean_laporan.siswa_gagal", {
+        message: `${student.name} gagal setelah ${MAX_ATTEMPTS} percobaan: ${message}`,
+        studentId: student.id,
+      });
       return 0;
     }
 
@@ -456,7 +461,7 @@ async function tick(): Promise<void> {
     lastStartAt = Date.now();
     next = await processItem(item);
   } catch (err) {
-    console.error("[antrean-laporan] Galat tak terduga:", err);
+    log.error("antrean_laporan.galat_tak_terduga", err);
   } finally {
     busy = false;
     schedule(next);
@@ -481,7 +486,7 @@ function cleanupOldJobs(): void {
     rmSync(jobDir(id), { recursive: true, force: true });
     db.prepare("DELETE FROM report_jobs WHERE id = ?").run(id);
   }
-  if (old.length > 0) console.log(`[antrean-laporan] ${old.length} job lama dibersihkan.`);
+  if (old.length > 0) log.info("antrean_laporan.dibersihkan", { message: `${old.length} job lama dibersihkan.` });
 }
 
 /** Dipanggil sekali saat server mulai. */
@@ -494,7 +499,9 @@ export function startReportWorker(): void {
     .prepare("UPDATE report_job_items SET status = 'pending' WHERE status = 'running'")
     .run().changes;
   if (recovered > 0) {
-    console.log(`[antrean-laporan] ${recovered} laporan yang terputus dimasukkan lagi ke antrean.`);
+    log.info("antrean_laporan.dipulihkan", {
+      message: `${recovered} laporan yang terputus dimasukkan lagi ke antrean.`,
+    });
   }
 
   cleanupOldJobs();
