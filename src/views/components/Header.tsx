@@ -71,29 +71,39 @@ const headerScript = `
     });
   }
 
+  // Hanya satu dropdown yang boleh terbuka. Tombol dropdown memanggil
+  // stopPropagation(), jadi penutup "klik di luar" milik dropdown lain tidak
+  // pernah terpicu — dropdown lain harus ditutup secara eksplisit di sini.
+  var semuaDropdown = [];
+
+  function tutupDropdown(d) {
+    d.panel.classList.add('hidden');
+    d.tombol.setAttribute('aria-expanded', 'false');
+  }
+
   function pasangDropdown(tombolId, panelId) {
     var tombol = document.getElementById(tombolId);
     var panel = document.getElementById(panelId);
     if (!tombol || !panel) return;
 
+    var dropdown = { tombol: tombol, panel: panel };
+    semuaDropdown.push(dropdown);
+
     tombol.addEventListener('click', function (e) {
       e.stopPropagation();
+      semuaDropdown.forEach(function (d) {
+        if (d !== dropdown) tutupDropdown(d);
+      });
       panel.classList.toggle('hidden');
       tombol.setAttribute('aria-expanded', panel.classList.contains('hidden') ? 'false' : 'true');
     });
 
     document.addEventListener('click', function (e) {
-      if (!tombol.contains(e.target) && !panel.contains(e.target)) {
-        panel.classList.add('hidden');
-        tombol.setAttribute('aria-expanded', 'false');
-      }
+      if (!tombol.contains(e.target) && !panel.contains(e.target)) tutupDropdown(dropdown);
     });
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        panel.classList.add('hidden');
-        tombol.setAttribute('aria-expanded', 'false');
-      }
+      if (e.key === 'Escape') tutupDropdown(dropdown);
     });
   }
 
