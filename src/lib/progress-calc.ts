@@ -114,11 +114,17 @@ function loadAllEntries(): Map<number, ProgressEntry[]> {
   return grouped;
 }
 
-/** Tambahan ayat sepekan terakhir untuk semua siswa, dalam satu query agregat. */
+/**
+ * Tambahan ayat sepekan terakhir untuk semua siswa, dalam satu query agregat.
+ *
+ * Menghapus atau mereset hafalan tercatat di progress_log sebagai selisih negatif.
+ * Totalnya dihitung bersih per siswa lalu ditahan di 0: koreksi salah ketik tetap
+ * saling meniadakan, tetapi penghapusan tidak pernah membuat "pekan ini" minus.
+ */
 function loadAllTrends(): Map<number, number> {
   const rows = db
     .prepare(
-      `SELECT student_id, COALESCE(SUM(ayah_to - ayah_from), 0) AS delta
+      `SELECT student_id, MAX(COALESCE(SUM(ayah_to - ayah_from), 0), 0) AS delta
        FROM progress_log
        WHERE logged_at >= datetime('now', '-7 days')
        GROUP BY student_id`
@@ -363,10 +369,16 @@ export function getSummaryStats(): {
 } {
   const students = db.prepare("SELECT COUNT(*) AS c FROM students").get() as { c: number };
   const classes = db.prepare("SELECT COUNT(*) AS c FROM classes").get() as { c: number };
+  // Dijumlahkan dari angka per siswa yang sudah ditahan di 0 (lihat loadAllTrends),
+  // supaya penghapusan hafalan satu siswa tidak mengurangi capaian siswa lain.
   const weekly = db
     .prepare(
-      `SELECT COALESCE(SUM(ayah_to - ayah_from), 0) AS delta FROM progress_log
-       WHERE logged_at >= datetime('now', '-7 days')`
+      `SELECT COALESCE(SUM(delta), 0) AS delta FROM (
+         SELECT MAX(COALESCE(SUM(ayah_to - ayah_from), 0), 0) AS delta
+         FROM progress_log
+         WHERE logged_at >= datetime('now', '-7 days')
+         GROUP BY student_id
+       )`
     )
     .get() as { delta: number };
 

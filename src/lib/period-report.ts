@@ -27,22 +27,25 @@ function groupByStudent<T extends { student_id: number }>(rows: T[]): Map<number
   return grouped;
 }
 
-/** Total ayat yang ditambahkan seorang siswa dalam rentang tanggal tertentu (inklusif). */
+/**
+ * Total ayat yang ditambahkan seorang siswa dalam rentang tanggal tertentu (inklusif).
+ * Ditahan di 0 — hafalan yang dihapus/direset tidak membuat capaian periode minus.
+ */
 export function getPeriodAyahMemorized(studentId: number, from: string, to: string): number {
   const row = db
     .prepare(
-      `SELECT COALESCE(SUM(ayah_to - ayah_from), 0) AS delta FROM progress_log
+      `SELECT MAX(COALESCE(SUM(ayah_to - ayah_from), 0), 0) AS delta FROM progress_log
        WHERE student_id = ? AND date(logged_at) >= date(?) AND date(logged_at) <= date(?)`
     )
     .get(studentId, from, to) as { delta: number };
   return row.delta;
 }
 
-/** Total ayat yang ditambahkan setiap siswa dalam rentang tanggal, dalam satu query. */
+/** Total ayat yang ditambahkan setiap siswa dalam rentang tanggal, dalam satu query; minimal 0. */
 function sumAyahDeltaInRange(from: string, to: string): Map<number, number> {
   const rows = db
     .prepare(
-      `SELECT student_id, COALESCE(SUM(ayah_to - ayah_from), 0) AS delta
+      `SELECT student_id, MAX(COALESCE(SUM(ayah_to - ayah_from), 0), 0) AS delta
        FROM progress_log
        WHERE date(logged_at) >= date(?) AND date(logged_at) <= date(?)
        GROUP BY student_id`

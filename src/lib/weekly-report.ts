@@ -17,11 +17,11 @@ const PAGE_WIDTH = 595.28; // A4 dalam points
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 40;
 
-/** Total ayat yang ditambahkan siswa ini dalam 7 hari terakhir. */
+/** Total ayat yang ditambahkan siswa ini dalam 7 hari terakhir, tidak pernah minus. */
 export function getWeeklyAyahMemorized(studentId: number): number {
   const row = db
     .prepare(
-      `SELECT COALESCE(SUM(ayah_to - ayah_from), 0) AS delta
+      `SELECT MAX(COALESCE(SUM(ayah_to - ayah_from), 0), 0) AS delta
        FROM progress_log
        WHERE student_id = ? AND logged_at >= datetime('now', '-7 days')`
     )
