@@ -5,8 +5,9 @@ untuk membangun aplikasi native iOS. Sebagai gantinya, aplikasi web ini sudah bi
 **dipasang ke layar utama iPhone lewat Safari**, dengan ikon sendiri dan tampilan layar
 penuh (tanpa bar alamat browser) — pengalamannya sangat mirip aplikasi asli.
 
-Aplikasi ini juga tetap mensyaratkan iPhone terhubung ke **WiFi yang sama dengan server**
-sekolah. Kalau tidak, akan tampil halaman "Silakan hubungkan ke WiFi server".
+iPhone harus bisa menjangkau alamat server: lewat internet bila server publik (mis. VPS),
+atau lewat **WiFi yang sama dengan server** bila server berada di jaringan sekolah. Kalau
+tidak terjangkau, Safari menampilkan pesan galat koneksinya sendiri.
 
 ## Langkah pemasangan (dilakukan sekali oleh tiap guru/admin)
 

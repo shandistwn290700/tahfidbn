@@ -166,8 +166,8 @@ const uxScript = `
   window.addEventListener('load', periksaFontIkon);
   setTimeout(periksaFontIkon, 2000);
 
-  // Daftarkan service worker untuk mode PWA (Add to Home Screen). Cuma
-  // berjaga saat aplikasi diakses lewat WiFi yang salah — lihat public/sw.js.
+  // Daftarkan service worker untuk mode PWA (Add to Home Screen). Ia tidak
+  // mencegat permintaan apa pun — lihat public/sw.js.
   try {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

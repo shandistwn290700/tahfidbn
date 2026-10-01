@@ -265,9 +265,9 @@ Laporan Periode, backup — berjalan penuh tanpa internet.
 
 ## Aplikasi mobile (Android & iPhone)
 
-Selain diakses lewat browser di komputer, aplikasi ini juga bisa dipasang di HP guru/admin,
-dengan syarat **HP harus terhubung ke WiFi yang sama dengan server** — kalau tidak, muncul
-peringatan "Silakan hubungkan ke WiFi server" alih-alih layar kosong/galat.
+Selain diakses lewat browser di komputer, aplikasi ini juga bisa dipasang di HP guru/admin.
+HP harus bisa menjangkau alamat server (internet untuk server publik, atau WiFi yang sama
+untuk server di jaringan sekolah).
 
 - **Android** — tersedia sebagai APK (aplikasi pembungkus native, folder
   `mobile-android/`). Lihat **[docs/MOBILE-ANDROID.md](docs/MOBILE-ANDROID.md)** untuk cara
