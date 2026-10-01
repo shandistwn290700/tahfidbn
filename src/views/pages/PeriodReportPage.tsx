@@ -68,7 +68,7 @@ export const PeriodReportPage: FC<{
           <EmptyState
             icon="event_busy"
             title="Tanggal semester belum diatur lengkap"
-            description="Isi Tanggal Mulai dan Tanggal Selesai Semester di Administrasi › Pengaturan › Laporan Pekanan supaya laporan periode ini bisa dihitung."
+            description="Isi Tanggal Mulai dan Tanggal Selesai Semester di Administrasi › Pengaturan › Laporan & Semester supaya laporan periode ini bisa dihitung."
           />
         </div>
       ) : (

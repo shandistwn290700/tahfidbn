@@ -147,27 +147,39 @@ export const ProgressPage: FC<{
       )}
 
       {selectedClass && rows.length > 0 && (
-        <div class="mb-6 flex flex-wrap gap-2">
-          <a
-            href={`/laporan/kelas/${selectedClass.id}`}
-            class={BTN_GHOST}
-            data-no-loader
-          >
-            <span class="material-symbols-outlined text-[20px]">folder_zip</span>
-            Unduh Laporan Pekanan Sekelas (ZIP)
-          </a>
-          {canvaReady && (
-            <a
-              href={`/laporan/kelas/${selectedClass.id}/canva`}
-              class={BTN_GHOST}
-              data-fetch-download
-              data-loader-text="Membuat laporan sekelas via Canva, satu per satu — bisa beberapa menit untuk kelas besar"
-              title="Diproses satu per satu lewat Canva — bisa memakan waktu beberapa menit untuk kelas besar. Jangan tutup halaman ini sebelum unduhan dimulai."
+        <div class="mb-6 flex flex-wrap items-center gap-2">
+          {canvaReady ? (
+            <form
+              method="POST"
+              action={`/laporan/kelas/${selectedClass.id}/antrean`}
+              data-confirm={`Laporan Pekanan untuk <b>${rows.length} siswa</b> kelas ${selectedClass.name} akan dibuat lewat Canva, satu per satu.<br><br>Prosesnya berjalan di server — halaman boleh ditutup. Unduh ZIP-nya di halaman Antrean Laporan setelah selesai.`}
+              data-confirm-title="Buat laporan sekelas?"
+              data-confirm-icon="question"
+              data-confirm-ok="Ya, masukkan antrean"
+              data-loader-text="Memasukkan ke antrean"
             >
-              <span class="material-symbols-outlined text-[20px]">palette</span>
-              Cetak via Canva Sekelas (ZIP)
-            </a>
+              <button type="submit" class={BTN_GHOST}>
+                <span class="material-symbols-outlined text-[20px]">folder_zip</span>
+                Buat Laporan Pekanan Sekelas (Canva)
+              </button>
+            </form>
+          ) : (
+            <p class="text-text-secondary dark:text-text-secondary-dark text-sm flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px]">info</span>
+              Laporan Pekanan dibuat lewat Canva, yang belum terhubung.
+              {isAdmin ? (
+                <a href="/administrasi/pengaturan/canva" class="text-primary font-bold hover:underline">
+                  Atur sekarang
+                </a>
+              ) : (
+                " Hubungi administrator."
+              )}
+            </p>
           )}
+          <a href="/laporan/antrean" class={BTN_GHOST}>
+            <span class="material-symbols-outlined text-[20px]">pending_actions</span>
+            Antrean Laporan
+          </a>
         </div>
       )}
 
@@ -311,28 +323,20 @@ export const ProgressPage: FC<{
                       </p>
                     </form>
 
-                    <div class="mt-5 pt-4 border-t border-border-light dark:border-border-light-dark flex flex-wrap gap-2">
-                      <a
-                        href={`/laporan/siswa/${row.student.id}`}
-                        class={BTN_GHOST}
-                        data-no-loader
+                    {canvaReady && (
+                      <form
+                        method="POST"
+                        action={`/laporan/siswa/${row.student.id}/antrean`}
+                        class="mt-5 pt-4 border-t border-border-light dark:border-border-light-dark flex flex-wrap gap-2"
+                        data-loader-text="Memasukkan ke antrean"
                       >
-                        <span class="material-symbols-outlined text-[20px]">description</span>
-                        Cetak Laporan Pekanan
-                      </a>
-                      {canvaReady && (
-                        <a
-                          href={`/laporan/siswa/${row.student.id}/canva`}
-                          class={BTN_GHOST}
-                          data-fetch-download
-                          data-loader-text="Membuat laporan via Canva"
-                          title="Prosesnya lebih lama karena mengisi desain di Canva terlebih dahulu"
-                        >
-                          <span class="material-symbols-outlined text-[20px]">palette</span>
-                          Cetak via Canva
-                        </a>
-                      )}
-                    </div>
+                        <input type="hidden" name="return_kelas" value={String(selectedClass?.id ?? "")} />
+                        <button type="submit" class={BTN_GHOST}>
+                          <span class="material-symbols-outlined text-[20px]">description</span>
+                          Buat Laporan Pekanan (Canva)
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </details>
               );

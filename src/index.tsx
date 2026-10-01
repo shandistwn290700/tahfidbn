@@ -16,6 +16,7 @@ import { siswaRoutes } from "./routes/administrasi/siswa.tsx";
 import { penggunaRoutes } from "./routes/administrasi/pengguna.tsx";
 import { pengaturanRoutes } from "./routes/administrasi/pengaturan.tsx";
 import "./lib/photos.ts";
+import { startReportWorker } from "./lib/report-queue.ts";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { Layout } from "./views/Layout.tsx";
 import type { Env } from "./types.ts";
@@ -33,6 +34,7 @@ if (!existsSync(join(import.meta.dir, "..", "public", "app.css"))) {
 initializeDatabase();
 cleanExpiredSessions();
 await ensureDefaultAdmin();
+startReportWorker();
 
 const app = new Hono<Env>();
 

@@ -24,7 +24,6 @@ import {
   setSemesterEnd,
   resetSemesterEnd,
   getSemesterMidpoint,
-  getCurrentSemesterWeek,
 } from "../../lib/settings.ts";
 import { generateWeeklyReportPdf } from "../../lib/weekly-report.ts";
 import {
@@ -44,7 +43,9 @@ import {
   getBrandTemplateId,
   setBrandTemplateId,
   clearBrandTemplateId,
+  getCanvaConfigStatus,
 } from "../../lib/canva.ts";
+import { kickReportWorker } from "../../lib/report-queue.ts";
 import { SettingsPage } from "../../views/pages/SettingsPage.tsx";
 import { ReportSettingsPage } from "../../views/pages/ReportSettingsPage.tsx";
 import { BackupPage } from "../../views/pages/BackupPage.tsx";
@@ -206,17 +207,20 @@ pengaturan.post("/laporan/semester-selesai/reset", (c) => {
   return redirectWith(c, LAPORAN_BASE, "success", "Tanggal selesai semester dihapus.");
 });
 
-/** Contoh laporan dengan data fiktif, supaya admin bisa cek tampilannya tanpa siswa asli. */
+/**
+ * Contoh PDF Laporan Periode dengan data fiktif, supaya admin bisa cek logo, nama
+ * sekolah, dan kontak tanpa siswa asli. (Laporan Pekanan kini lewat Canva.)
+ */
 pengaturan.get("/laporan/pratinjau", async (c) => {
   const pdf = await generateWeeklyReportPdf(
     { id: 0, name: "Ahmad Fauzan (Contoh)", photo_path: null },
-    getCurrentSemesterWeek(),
-    { sampleAyat: 12 }
+    null,
+    { sampleAyat: 120, heading: "Laporan Tengah Semester", periodLabel: "selama tengah semester ini" }
   );
 
   c.header("Content-Type", "application/pdf");
-  c.header("Content-Disposition", 'inline; filename="Contoh_Laporan_Pekanan.pdf"');
-  return c.body(pdf);
+  c.header("Content-Disposition", 'inline; filename="Contoh_Laporan_Periode.pdf"');
+  return c.body(new Uint8Array(pdf));
 });
 
 const BACKUP_BASE = `${BASE}/backup`;
@@ -306,12 +310,27 @@ pengaturan.get("/canva", (c) => {
       user={user}
       connected={isCanvaConnected()}
       brandTemplateId={getBrandTemplateId()}
+      config={getCanvaConfigStatus()}
+      // Host yang sedang dibuka admin (nginx meneruskan header Host), untuk
+      // mendeteksi Redirect URI yang masih menunjuk ke 127.0.0.1/laptop lain.
+      currentHost={c.req.header("host") ?? null}
     />
   );
 });
 
 /** Mulai alur OAuth PKCE ke Canva. Verifier & state disimpan sesaat lewat cookie httpOnly. */
 pengaturan.get("/canva/connect", async (c) => {
+  // Konfigurasi .env yang belum lengkap ditampilkan sebagai pesan, bukan halaman galat 500.
+  const config = getCanvaConfigStatus();
+  if (!config.hasClientId || !config.hasClientSecret || !config.redirectUri) {
+    return redirectWith(
+      c,
+      CANVA_BASE,
+      "error",
+      "CANVA_CLIENT_ID, CANVA_CLIENT_SECRET, dan CANVA_REDIRECT_URI (atau APP_URL) wajib diisi di .env server, lalu aplikasi di-restart."
+    );
+  }
+
   const { verifier, challenge } = await generatePkcePair();
   const state = crypto.randomUUID();
 
@@ -356,6 +375,8 @@ pengaturan.get("/canva/callback", async (c) => {
     return redirectWith(c, CANVA_BASE, "error", message);
   }
 
+  // Antrean laporan yang berhenti karena koneksi terputus langsung berlanjut.
+  kickReportWorker();
   return redirectWith(c, CANVA_BASE, "success", "Akun Canva berhasil terhubung.");
 });
 
@@ -374,6 +395,7 @@ pengaturan.post("/canva/template", async (c) => {
   }
 
   setBrandTemplateId(id);
+  kickReportWorker();
   return redirectWith(c, CANVA_BASE, "success", "ID Brand Template disimpan.");
 });
 

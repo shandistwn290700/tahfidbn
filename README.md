@@ -19,8 +19,8 @@ kembali oleh sekolah atau TPQ mana pun yang membutuhkan (lihat [LICENSE](LICENSE
 - [Langkah awal penggunaan](#langkah-awal-penggunaan)
 - [Perintah](#perintah)
 - [Basis data & migrasi](#basis-data--migrasi)
-- [Laporan Pekanan (PDF bawaan)](#laporan-pekanan-pdf-bawaan)
-- [Integrasi Canva (opsional)](#integrasi-canva-opsional)
+- [Laporan Pekanan (via Canva)](#laporan-pekanan-via-canva)
+- [Laporan Periode (PDF bawaan)](#laporan-periode-pdf-bawaan)
 - [Backup & pemulihan](#backup--pemulihan)
 - [Berjalan tanpa internet](#berjalan-tanpa-internet)
 - [Aplikasi mobile (Android & iPhone)](#aplikasi-mobile-android--iphone)
@@ -37,10 +37,9 @@ kembali oleh sekolah atau TPQ mana pun yang membutuhkan (lihat [LICENSE](LICENSE
   tanggal semester yang diatur admin, dengan cetak PDF per siswa
 - **Input Hafalan Qur'an** — guru mencatat posisi hafalan tiap siswa di kelas yang ia ampu,
   dengan riwayat lengkap tersimpan
-- **Laporan Pekanan** — PDF otomatis per siswa (dan ZIP sekelas), berisi foto, nama, dan
-  capaian pekan berjalan; dibuat langsung oleh aplikasi (`pdfkit`), tanpa layanan luar
-- **Integrasi Canva (opsional)** — cetak Laporan Pekanan lewat desain Brand Template Canva
-  sendiri, diisi otomatis lewat Autofill API; lihat [panduan lengkap](docs/CANVA-SETUP.md)
+- **Laporan Pekanan via Canva** — desain Brand Template Canva milik sekolah diisi otomatis
+  (nama, foto, capaian pekan berjalan) lewat Autofill API, per siswa atau sekelas (ZIP),
+  diproses lewat antrean FIFO di server; lihat [panduan lengkap](docs/CANVA-SETUP.md)
 - **Al-Qur'an digital** — teks lengkap 114 surah dengan penanda baca terakhir per pengguna
 - **Administrasi** — kelola kelas, siswa (termasuk impor massal dari Excel dan unggah foto
   massal dari ZIP), dan akun guru/admin beserta kelas ampuannya
@@ -151,9 +150,9 @@ Salin `.env.example` menjadi `.env`, lalu sesuaikan:
 | `ADMIN_USERNAME` | **Ya** | Nama pengguna akun admin pertama — hanya dipakai sekali saat tabel `users` masih kosong |
 | `ADMIN_PASSWORD` | **Ya** | Kata sandi akun admin pertama — minimal 8 karakter. **Ganti lewat menu Akun setelah masuk pertama kali**, jangan biarkan nilai bawaan `.env.example` terpakai |
 | `DB_PATH` | Tidak | Menimpa lokasi berkas basis data (bawaan `data/ngaji.db`) — berguna untuk pengujian dengan salinan basis data terpisah tanpa mengganggu yang sedang berjalan |
-| `CANVA_CLIENT_ID` | Tidak | Hanya bila memakai [integrasi Canva](docs/CANVA-SETUP.md) |
-| `CANVA_CLIENT_SECRET` | Tidak | idem |
-| `CANVA_REDIRECT_URI` | Tidak | idem — harus persis sama dengan yang didaftarkan di dashboard Canva Developers |
+| `CANVA_CLIENT_ID` | Untuk Laporan Pekanan | Dari App di canva.com/developers — lihat [panduan Canva](docs/CANVA-SETUP.md) |
+| `CANVA_CLIENT_SECRET` | Untuk Laporan Pekanan | idem |
+| `CANVA_REDIRECT_URI` | Tidak | Bawaan `APP_URL` + `/administrasi/pengaturan/canva/callback`. Isi hanya di komputer lokal (`http://127.0.0.1:3000/...`, karena Canva menolak `localhost`). Harus persis sama dengan yang didaftarkan di Canva |
 
 Bun memuat `.env` secara otomatis — tidak perlu paket `dotenv`.
 
@@ -166,10 +165,12 @@ Bun memuat `.env` secara otomatis — tidak perlu paket `dotenv`.
    satu per satu, tempel banyak nama sekaligus (`NIS,Nama` per baris), atau impor dari
    berkas Excel. Foto siswa bisa diunggah satu-satu atau massal lewat berkas ZIP
    (nama berkas foto di dalam ZIP harus berupa NIS siswa, mis. `2024001.jpg`)
-5. **Administrasi › Pengaturan › Laporan Pekanan** — isi logo, nama sekolah, kontak
-   (website/WA/Instagram/TikTok), dan **tanggal mulai semester** (dasar penghitungan
-   "Laporan Pekanan ke-N" dan Laporan Periode)
-6. Guru masuk, membuka **Input › Hafalan Qur'an**, memilih kelas, lalu mencatat capaian
+5. **Administrasi › Pengaturan › Laporan & Semester** — isi **tanggal mulai dan selesai
+   semester** (dasar nomor pekan dan Laporan Periode), serta logo, nama sekolah, dan kontak
+   untuk PDF Laporan Periode
+6. **Administrasi › Pengaturan › Integrasi Canva** — hubungkan Canva dan isi ID Brand
+   Template supaya Laporan Pekanan bisa dibuat ([panduan](docs/CANVA-SETUP.md))
+7. Guru masuk, membuka **Input › Hafalan Qur'an**, memilih kelas, lalu mencatat capaian
    tiap siswa secara berkala
 
 ## Perintah
@@ -207,36 +208,31 @@ menyalin berkas mentah):
 Migrasi tidak menyentuh data hafalan Tahfid, dan bersifat idempoten — aman dijalankan
 berulang kali (mis. saat menyalakan ulang server).
 
-## Laporan Pekanan (PDF bawaan)
+## Laporan Pekanan (via Canva)
 
-Laporan pekanan (PDF per siswa, dan ZIP untuk sekelas) dibuat langsung oleh aplikasi dengan
-`pdfkit` — **tidak melalui Canva atau layanan luar mana pun**, supaya tetap bisa dipakai
-tanpa internet sama sekali. Ini jalur utama yang selalu tersedia; integrasi Canva di bawah
-murni tambahan opsional untuk sekolah yang ingin tampilan laporan lebih dikustomisasi.
+Laporan Pekanan dibuat **lewat Canva**: aplikasi mengisi Brand Template desain sekolah secara
+otomatis (Autofill API), mengekspornya sebagai PDF, lalu menyimpannya untuk diunduh. Guru
+menekan **Buat Laporan Pekanan (Canva)** per siswa atau **sekelas** di Input › Hafalan Qur'an.
+Setiap permintaan masuk **antrean FIFO**: satu pekerja di server memproses satu siswa demi
+satu, urut permintaan yang masuk lebih dulu, untuk semua guru sekaligus. Progres dan tombol
+unduh (PDF untuk satu siswa, ZIP untuk sekelas) ada di **Input › Antrean Laporan**. Halaman
+boleh ditutup selama proses berjalan, dan hasil disimpan 7 hari di `data/reports/`.
 
-Sebelum dipakai, admin perlu mengisi **Administrasi › Pengaturan › Laporan Pekanan**: logo
-(PNG/JPEG, maksimal 2MB), nama sekolah untuk laporan, kontak, dan tanggal mulai semester.
 Jumlah ayat pada laporan dihitung dari tambahan hafalan **7 hari terakhir** siswa tersebut
-(jendela bergulir dari saat laporan dibuat, bukan batas kalender pekan tetap).
+(jendela bergulir saat laporan diproses, bukan batas kalender pekan tetap). Nomor pekan
+diambil dari tanggal mulai semester di **Administrasi › Pengaturan › Laporan & Semester**.
 
-Laporan Periode (tengah semester & semester penuh) memakai jalur PDF yang sama, dengan
-rentang tanggal dari **Administrasi › Pengaturan › Laporan Pekanan** (tanggal mulai dan
-selesai semester) — bukan jendela 7 hari.
+Setup Canva melibatkan beberapa langkah di sisi Canva sendiri dan punya beberapa jebakan,
+terutama saat dipindah ke VPS. **Ikuti panduan lengkap di
+[docs/CANVA-SETUP.md](docs/CANVA-SETUP.md)**, termasuk daftar periksa khusus VPS.
 
-## Integrasi Canva (opsional)
+## Laporan Periode (PDF bawaan)
 
-Sekolah yang ingin laporan pekanan tampil dengan desain Canva sendiri (bukan templat bawaan
-`pdfkit`) bisa menghubungkan akun Canva lewat **Administrasi › Pengaturan › Integrasi
-Canva**. Setelah tersambung dan Brand Template diatur, tombol **"Cetak via Canva"** (satu
-siswa maupun sekelas) akan muncul di halaman Input › Hafalan Qur'an.
-
-Proses setupnya melibatkan beberapa langkah di sisi Canva sendiri (bukan cuma di aplikasi
-ini) dan punya beberapa jebakan yang tidak kentara — **ikuti panduan lengkap di
-[docs/CANVA-SETUP.md](docs/CANVA-SETUP.md)**, termasuk daftar solusi untuk kesalahan yang
-paling sering ditemui.
-
-Fitur ini sepenuhnya opsional. Tanpa dikonfigurasi sama sekali, aplikasi berjalan normal
-dan hanya menampilkan opsi cetak PDF bawaan.
+Laporan Tengah Semester dan Laporan Semester tetap dibuat langsung oleh aplikasi dengan
+`pdfkit`, tanpa Canva atau layanan luar. Rentang tanggalnya diambil dari tanggal mulai dan
+selesai semester di **Administrasi › Pengaturan › Laporan & Semester**. Di halaman yang sama
+admin mengisi logo (PNG/JPEG, maksimal 2MB), nama sekolah, dan kontak yang tampil di PDF ini,
+dan bisa melihat pratinjaunya.
 
 ## Backup & pemulihan
 
@@ -262,9 +258,10 @@ ikon (Material Symbols) yang masih diambil dari Google Fonts; bila tidak terjang
 disembunyikan otomatis dan seluruh teks tetap terbaca (tidak muncul tulisan mentah seperti
 `arrow_upward`).
 
-Fitur yang **butuh** internet: integrasi Canva (opsional, lihat di atas) dan pemuatan font
-ikon di atas. Semua fitur inti — input hafalan, papan peringkat, cetak laporan PDF, backup —
-berjalan penuh tanpa internet.
+Fitur yang **butuh** internet: Laporan Pekanan (lewat Canva) dan pemuatan font ikon di atas.
+Laporan Pekanan yang gagal karena internet mati tercatat di Antrean Laporan dan bisa diulang
+lewat tombol **Ulangi yang gagal** setelah koneksi kembali. Fitur inti lainnya — input hafalan, papan peringkat, PDF
+Laporan Periode, backup — berjalan penuh tanpa internet.
 
 ## Aplikasi mobile (Android & iPhone)
 

@@ -44,3 +44,6 @@ data/ngaji.backup-*.db
 
 # foto siswa hasil unggah massal
 data/photos/
+
+# hasil Laporan Pekanan via Canva (antrean), dihapus otomatis setelah 7 hari
+data/reports/

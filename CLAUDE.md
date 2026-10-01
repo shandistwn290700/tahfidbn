@@ -124,6 +124,22 @@ disembunyikan, bukan tampil sebagai tulisan mentah seperti "arrow_upward".
 Rute POST tidak merender halaman; semuanya redirect dengan pesan lewat `redirectWith()`
 di `src/lib/http.ts`.
 
+### Laporan
+
+- **Laporan Pekanan hanya lewat Canva**, dan **selalu lewat antrean** `src/lib/report-queue.ts`.
+  Jangan memanggil `generateWeeklyReportViaCanva()` langsung dari rute: request panjang
+  diputus nginx (±60 dtk) dan service worker PWA (navigasi > 4 dtk), dan pemanggilan paralel
+  melanggar batas Canva (ekspor 75 per 5 menit, 500 per hari per akun). Satu pekerja di
+  proses server (`startReportWorker()` di `index.tsx`) memproses satu siswa per ≥5 detik,
+  urut `report_jobs.id` lalu `position`. Aplikasi harus berjalan sebagai **satu proses**.
+- Refresh token Canva **sekali pakai**. `getValidAccessToken()` membagi satu proses refresh
+  ke semua pemanggil; jangan dihapus. Refresh yang ditolak (400/401) melepas token dan
+  melempar `CanvaAuthError`, sehingga antrean berhenti tanpa menandai siswa gagal.
+- Redirect URI OAuth: `CANVA_REDIRECT_URI`, atau diturunkan dari `APP_URL` bila kosong.
+- **Laporan Periode** tetap PDF bawaan (`generateWeeklyReportPdf()` dengan `heading`/
+  `periodLabel`); logo, nama sekolah, dan kontak di Pengaturan › Laporan & Semester hanya
+  dipakai PDF ini.
+
 ## Lokasi berkas penting
 
 | Keperluan | Berkas |
@@ -134,8 +150,9 @@ di `src/lib/http.ts`.
 | Sesi, hash password, akun | `src/lib/session.ts` |
 | Hak akses guru/kelas | `src/lib/access.ts` |
 | Perhitungan peringkat Tahfid | `src/lib/progress-calc.ts` |
-| Laporan Periode (tengah semester / semester penuh) | `src/lib/period-report.ts` |
-| Laporan Pekanan (PDF per siswa, ZIP per kelas) | `src/lib/weekly-report.ts`, `src/routes/laporan.tsx` |
+| Laporan Periode (tengah semester / semester penuh) | `src/lib/period-report.ts`; PDF-nya `src/lib/weekly-report.ts` |
+| Laporan Pekanan via Canva (OAuth, Autofill, ekspor) | `src/lib/canva.ts` |
+| Antrean FIFO Laporan Pekanan & pekerjanya | `src/lib/report-queue.ts`, `src/routes/laporan.tsx` |
 | Validasi masukan angka & redirect | `src/lib/http.ts` |
 | Metadata Al-Qur'an | `src/data/quran-meta.ts` |
 | Tipe bersama | `src/types.ts` |

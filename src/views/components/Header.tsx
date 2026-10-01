@@ -41,7 +41,10 @@ const PAPAN_PERINGKAT_LINKS = [
   { href: "/leaderboard/periode", label: "Laporan Periode", icon: "event_note" },
 ];
 
-const INPUT_LINKS = [{ href: "/progress", label: "Hafalan Qur'an", icon: "auto_stories" }];
+const INPUT_LINKS = [
+  { href: "/progress", label: "Hafalan Qur'an", icon: "auto_stories" },
+  { href: "/laporan/antrean", label: "Antrean Laporan", icon: "pending_actions" },
+];
 
 /** Grup dropdown aktif bila berada pada salah satu halamannya. */
 function isGroupActive(currentPath: string, links: { href: string }[]): boolean {

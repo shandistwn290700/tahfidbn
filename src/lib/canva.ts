@@ -1,5 +1,4 @@
 import { existsSync, readFileSync } from "node:fs";
-import PDFDocument from "pdfkit";
 import { db } from "../db/connection.ts";
 import { getPhotoDiskPath } from "./photos.ts";
 import { getStudentProgress } from "./progress-calc.ts";
@@ -45,6 +44,13 @@ function clearSetting(key: string): void {
   db.prepare("DELETE FROM settings WHERE key = ?").run(key);
 }
 
+/**
+ * Koneksi Canva tidak bisa dipakai lagi tanpa campur tangan admin (token dicabut,
+ * refresh token ditolak, akun belum terhubung). Antrean laporan berhenti
+ * sementara saat menerima galat ini, alih-alih menggagalkan siswa satu per satu.
+ */
+export class CanvaAuthError extends Error {}
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Variabel lingkungan ${name} belum diisi di .env.`);
@@ -59,8 +65,39 @@ function getCanvaClientSecret(): string {
   return requireEnv("CANVA_CLIENT_SECRET");
 }
 
-function getCanvaRedirectUri(): string {
-  return requireEnv("CANVA_REDIRECT_URI");
+const CALLBACK_PATH = "/administrasi/pengaturan/canva/callback";
+
+/**
+ * CANVA_REDIRECT_URI bila diisi; kalau tidak, diturunkan dari APP_URL. Dengan
+ * begitu server produksi cukup mengisi APP_URL=https://domain-sekolah dan tidak
+ * mewarisi alamat 127.0.0.1 dari .env laptop pengembang.
+ */
+export function getCanvaRedirectUri(): string | null {
+  const explicit = process.env.CANVA_REDIRECT_URI?.trim();
+  if (explicit) return explicit;
+  const appUrl = process.env.APP_URL?.trim().replace(/\/+$/, "");
+  return appUrl ? `${appUrl}${CALLBACK_PATH}` : null;
+}
+
+function requireRedirectUri(): string {
+  const uri = getCanvaRedirectUri();
+  if (!uri) throw new Error("CANVA_REDIRECT_URI (atau APP_URL) belum diisi di .env.");
+  return uri;
+}
+
+/** Ringkasan konfigurasi .env untuk halaman Pengaturan › Integrasi Canva. */
+export function getCanvaConfigStatus(): {
+  hasClientId: boolean;
+  hasClientSecret: boolean;
+  redirectUri: string | null;
+  redirectFromAppUrl: boolean;
+} {
+  return {
+    hasClientId: Boolean(process.env.CANVA_CLIENT_ID),
+    hasClientSecret: Boolean(process.env.CANVA_CLIENT_SECRET),
+    redirectUri: getCanvaRedirectUri(),
+    redirectFromAppUrl: !process.env.CANVA_REDIRECT_URI?.trim(),
+  };
 }
 
 function base64Url(input: ArrayBuffer): string {
@@ -87,7 +124,7 @@ export function buildAuthorizeUrl(state: string, codeChallenge: string): string 
   const params = new URLSearchParams({
     response_type: "code",
     client_id: getCanvaClientId(),
-    redirect_uri: getCanvaRedirectUri(),
+    redirect_uri: requireRedirectUri(),
     scope: SCOPES,
     state,
     code_challenge: codeChallenge,
@@ -119,7 +156,10 @@ async function requestToken(body: URLSearchParams): Promise<TokenResponse> {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Gagal menghubungi Canva (${response.status}): ${text}`);
+    // 400/401 dari endpoint token berarti kode/refresh token ditolak secara
+    // permanen (mis. "Refresh token used twice"); 5xx/jaringan masih bisa dicoba lagi.
+    const ErrorType = response.status === 400 || response.status === 401 ? CanvaAuthError : Error;
+    throw new ErrorType(`Gagal menghubungi Canva (${response.status}): ${text}`);
   }
 
   return (await response.json()) as TokenResponse;
@@ -137,7 +177,7 @@ export async function exchangeCodeForToken(code: string, codeVerifier: string): 
       grant_type: "authorization_code",
       code,
       code_verifier: codeVerifier,
-      redirect_uri: getCanvaRedirectUri(),
+      redirect_uri: requireRedirectUri(),
     })
   );
   storeTokens(tokens);
@@ -163,6 +203,14 @@ export function disconnectCanva(): void {
   clearSetting(EXPIRES_AT_KEY);
 }
 
+/**
+ * Refresh token Canva hanya boleh dipakai SEKALI. Bila dua permintaan memperbarui
+ * token bersamaan, yang kedua memakai token yang sudah hangus dan Canva mencabut
+ * seluruh koneksi ("Refresh token used twice"). Karena itu pembaruan yang sedang
+ * berjalan dibagi ke semua pemanggil, bukan dijalankan ulang.
+ */
+let refreshInFlight: Promise<void> | null = null;
+
 /** Token akses yang masih berlaku, memperbarui otomatis lewat refresh token bila sudah kedaluwarsa. */
 export async function getValidAccessToken(): Promise<string> {
   const accessToken = getSetting(ACCESS_TOKEN_KEY);
@@ -170,12 +218,28 @@ export async function getValidAccessToken(): Promise<string> {
   const expiresAt = Number(getSetting(EXPIRES_AT_KEY) || 0);
 
   if (!accessToken || !refreshToken) {
-    throw new Error("Akun Canva belum terhubung.");
+    throw new CanvaAuthError("Akun Canva belum terhubung.");
   }
 
   // Diperbarui 60 detik lebih awal untuk menghindari kedaluwarsa di tengah permintaan.
   if (Date.now() > expiresAt - 60_000) {
-    await refreshTokens(refreshToken);
+    refreshInFlight ??= refreshTokens(refreshToken).finally(() => {
+      refreshInFlight = null;
+    });
+    try {
+      await refreshInFlight;
+    } catch (err) {
+      if (err instanceof CanvaAuthError) {
+        // Token yang tersimpan sudah tidak bisa dipakai lagi — dilepas supaya
+        // halaman Pengaturan menampilkan "belum terhubung" dan admin menghubungkan ulang.
+        disconnectCanva();
+        throw new CanvaAuthError(
+          "Koneksi Canva terputus dan perlu dihubungkan ulang di Administrasi › Pengaturan › " +
+            `Integrasi Canva. (${err.message})`
+        );
+      }
+      throw err;
+    }
     return getSetting(ACCESS_TOKEN_KEY)!;
   }
 
@@ -194,15 +258,29 @@ export function clearBrandTemplateId(): void {
   clearSetting(BRAND_TEMPLATE_ID_KEY);
 }
 
+const MAX_RATE_LIMIT_RETRIES = 3;
+
+/**
+ * Permintaan ke API Canva. Jawaban 429 (batas kecepatan) ditunggu sesuai
+ * Retry-After lalu diulang, supaya satu lonjakan tidak langsung menggagalkan laporan.
+ */
 async function canvaFetch(path: string, init: RequestInit = {}): Promise<Response> {
-  const token = await getValidAccessToken();
-  return fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      ...init.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  for (let attempt = 0; ; attempt++) {
+    const token = await getValidAccessToken();
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers: {
+        ...init.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status !== 429 || attempt >= MAX_RATE_LIMIT_RETRIES) return response;
+
+    const retryAfter = Number(response.headers.get("Retry-After"));
+    const waitMs = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 10_000 * (attempt + 1);
+    await new Promise((resolve) => setTimeout(resolve, Math.min(waitMs, 60_000)));
+  }
 }
 
 export interface AutofillField {
@@ -353,9 +431,10 @@ export interface CanvaReportStudent {
 }
 
 /**
- * Menghasilkan laporan pekanan lewat Autofill Brand Template Canva —
- * padanan generateWeeklyReportPdf() di weekly-report.ts, tapi lewat Canva
- * alih-alih pdfkit. Field yang diisi: nama, pekan, ayat, ayat_sebelum,
+ * Menghasilkan Laporan Pekanan lewat Autofill Brand Template Canva — satu-satunya
+ * jalur Laporan Pekanan (PDF bawaan pdfkit kini hanya untuk Laporan Periode).
+ * Jangan dipanggil langsung dari rute: lewati antrean di report-queue.ts supaya
+ * batas kecepatan API Canva terjaga. Field yang diisi: nama, pekan, ayat, ayat_sebelum,
  * ayat_total, foto (opsional). `ayat_sebelum` = total hafalan saat ini
  * (getStudentProgress) dikurangi tambahan pekan ini, supaya konsisten
  * secara matematis: sebelum + ayat = total. Untuk siswa yang seluruh
@@ -416,39 +495,4 @@ export async function generateWeeklyReportViaCanva(
   }
 
   return Buffer.from(await pdfResponse.arrayBuffer());
-}
-
-/**
- * Dipakai sebagai pengganti satu berkas PDF ketika laporan Canva gagal dibuat
- * di tengah proses ZIP sekelas — supaya siswa itu tetap punya berkas .pdf yang
- * valid (berisi pesan kegagalan) alih-alih berkas kosong atau ZIP yang gagal total.
- */
-export async function buildCanvaFailureNotePdf(studentName: string, message: string): Promise<Buffer> {
-  const doc = new PDFDocument({ size: "A4", margin: 60 });
-  const chunks: Buffer[] = [];
-  const done = new Promise<Buffer>((resolve, reject) => {
-    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
-  });
-
-  doc.font("Helvetica-Bold").fontSize(16).fillColor("#b91c1c").text("Laporan Canva Gagal Dibuat");
-  doc.moveDown(1.5);
-  doc.font("Helvetica-Bold").fontSize(12).fillColor("#1f2937").text(studentName);
-  doc.moveDown(0.5);
-  doc
-    .font("Helvetica")
-    .fontSize(11)
-    .fillColor("#374151")
-    .text(
-      "Laporan pekanan via Canva untuk siswa ini tidak berhasil dibuat saat ZIP sekelas " +
-        "diproses. Silakan coba cetak ulang satu per satu dari halaman Hafalan Qur'an.",
-      { lineGap: 3 }
-    );
-  doc.moveDown(1);
-  doc.font("Helvetica-Bold").fontSize(10).fillColor("#b91c1c").text("Pesan kesalahan:");
-  doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text(message, { lineGap: 2 });
-
-  doc.end();
-  return done;
 }

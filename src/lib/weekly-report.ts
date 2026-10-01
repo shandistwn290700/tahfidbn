@@ -169,7 +169,10 @@ export interface ReportStudent {
   photo_path: string | null;
 }
 
-/** Membuat satu PDF laporan pekanan untuk satu siswa. */
+/**
+ * Membuat satu PDF laporan untuk satu siswa. Kini hanya dipakai untuk Laporan Periode
+ * (dengan `heading`/`periodLabel`) dan pratinjaunya — Laporan Pekanan lewat Canva.
+ */
 export async function generateWeeklyReportPdf(
   student: ReportStudent,
   weekNumber: number | null,

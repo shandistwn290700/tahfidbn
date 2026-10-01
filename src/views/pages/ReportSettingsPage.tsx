@@ -40,7 +40,7 @@ export const ReportSettingsPage: FC<{
       currentPath={currentPath}
       title="Pengaturan Laporan"
       heading="Pengaturan"
-      subheading="Atur tampilan Laporan Pekanan yang diunduh guru dari halaman Hafalan Qur'an."
+      subheading="Atur tanggal semester (dasar nomor pekan dan Laporan Periode) serta tampilan PDF Laporan Periode. Tampilan Laporan Pekanan diatur langsung di desain Canva."
       actions={
         <a
           href="/administrasi/pengaturan/laporan/pratinjau"
@@ -50,7 +50,7 @@ export const ReportSettingsPage: FC<{
           data-no-loader
         >
           <span class="material-symbols-outlined text-[20px]">visibility</span>
-          Pratinjau Contoh Laporan
+          Pratinjau PDF Laporan Periode
         </a>
       }
     >
@@ -64,7 +64,7 @@ export const ReportSettingsPage: FC<{
             Logo Laporan
           </h2>
           <p class="text-text-secondary dark:text-text-secondary-dark text-sm mb-5">
-            Logo yang tampil di bagian atas Laporan Pekanan (PDF). Format PNG atau JPEG, maksimal
+            Logo yang tampil di bagian atas PDF Laporan Periode. Format PNG atau JPEG, maksimal
             2MB — beda dari favicon, supaya hasil cetaknya tetap tajam.
           </p>
 
@@ -111,7 +111,7 @@ export const ReportSettingsPage: FC<{
               method="POST"
               action="/administrasi/pengaturan/laporan/logo/reset"
               class="mt-4 pt-4 border-t border-border-light dark:border-border-light-dark"
-              data-confirm="Logo pada Laporan Pekanan akan dihapus."
+              data-confirm="Logo pada PDF Laporan Periode akan dihapus."
               data-confirm-title="Hapus logo laporan?"
               data-confirm-icon="question"
               data-confirm-ok="Ya, hapus"
@@ -132,7 +132,7 @@ export const ReportSettingsPage: FC<{
             Identitas &amp; Kontak
           </h2>
           <p class="text-text-secondary dark:text-text-secondary-dark text-sm mb-5">
-            Tampil di bagian judul dan footer Laporan Pekanan. Kosongkan kontak yang tidak
+            Tampil di bagian judul dan footer PDF Laporan Periode. Kosongkan kontak yang tidak
             dipakai — baris itu tidak akan ditampilkan.
           </p>
           <form
@@ -218,7 +218,7 @@ export const ReportSettingsPage: FC<{
             Tanggal Semester
           </h2>
           <p class="text-text-secondary dark:text-text-secondary-dark text-sm mb-5">
-            Dasar penghitungan "Laporan Pekanan ke-N", serta cakupan tanggal Laporan Tengah
+            Dasar nomor pekan pada Laporan Pekanan (isian <code>pekan</code> di Canva), serta cakupan tanggal Laporan Tengah
             Semester dan Laporan Semester. Atur ulang setiap awal semester/tahun ajaran baru.
           </p>
 
@@ -264,7 +264,7 @@ export const ReportSettingsPage: FC<{
                   <form
                     method="POST"
                     action="/administrasi/pengaturan/laporan/semester/reset"
-                    data-confirm="Tanggal mulai semester akan dihapus. Laporan Pekanan tidak akan menampilkan nomor pekan sampai diatur ulang."
+                    data-confirm="Tanggal mulai semester akan dihapus. Laporan Pekanan akan mengisi nomor pekan dengan tanda - sampai diatur ulang."
                     data-confirm-title="Hapus tanggal mulai semester?"
                     data-confirm-icon="question"
                     data-confirm-ok="Ya, hapus"

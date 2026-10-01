@@ -1,12 +1,16 @@
 # Panduan Integrasi Canva
 
-Panduan ini untuk admin sekolah yang ingin laporan pekanan dicetak lewat desain Canva
-sendiri, bukan templat PDF bawaan aplikasi. **Fitur ini sepenuhnya opsional** — tanpa
-diatur sama sekali, aplikasi tetap berjalan normal dengan laporan PDF bawaan (`pdfkit`).
+Panduan ini untuk admin sekolah. **Laporan Pekanan dibuat sepenuhnya lewat Canva**: aplikasi
+mengisi Brand Template milik sekolah secara otomatis (Autofill API), lalu mengekspornya
+sebagai PDF. Tanpa Canva yang terhubung, Laporan Pekanan tidak bisa dibuat. Laporan
+Periode (tengah semester/semester penuh) tetap memakai PDF bawaan dan tidak butuh Canva.
 
 Proses ini melibatkan dua sisi: pengaturan di **dashboard Canva Developers** (di luar
 aplikasi ini) dan pengaturan di **menu Pengaturan aplikasi**. Ikuti urutannya — banyak
 langkah di sini yang gagal kalau dilakukan tidak berurutan atau di tempat yang salah.
+
+> **Sudah pernah berjalan di komputer lokal, lalu macet setelah pindah ke VPS?**
+> Langsung ke [Pindah ke VPS](#pindah-ke-vps--daftar-periksa).
 
 ## Yang perlu disiapkan sebelum mulai
 
@@ -30,14 +34,15 @@ langkah di sini yang gagal kalau dilakukan tidak berurutan atau di tempat yang s
    sekilas terlihat mirip tapi fungsinya beda total; Webhook untuk notifikasi event ke
    server publik dan menolak alamat localhost, sedangkan Authentication yang menyimpan
    Redirect URL untuk login).
-4. Di bagian **"Authorized redirects"**, tambahkan persis:
+4. Di bagian **"Authorized redirects"**, tambahkan alamat callback untuk **setiap tempat
+   aplikasi dijalankan**. Canva menerima lebih dari satu alamat:
    ```
-   http://127.0.0.1:3000/administrasi/pengaturan/canva/callback
+   https://tahfid.namasekolah.sch.id/administrasi/pengaturan/canva/callback   ← server/VPS
+   http://127.0.0.1:3000/administrasi/pengaturan/canva/callback              ← komputer lokal (opsional)
    ```
-   Ganti `127.0.0.1:3000` sesuai domain/port aplikasi Anda yang sebenarnya bila berjalan di
-   server produksi. **Alamat ini harus sama persis** (termasuk `http://` vs `https://` dan
-   nomor port) dengan `CANVA_REDIRECT_URI` di `.env` aplikasi — kalau beda satu karakter
-   pun, Canva akan menolak dengan pesan "Redirect URI mismatch" atau serupa.
+   Alamat ini **harus sama persis** (termasuk `http://` vs `https://`, nomor port, dan tanpa
+   garis miring di akhir) dengan Redirect URI yang dipakai aplikasi. Bedanya satu karakter
+   saja, Canva menolak dengan pesan "Redirect URI mismatch" atau serupa.
 
    > Canva tidak menerima `localhost` untuk redirect lokal — pakai `127.0.0.1`.
 5. Masuk ke menu **"Scopes"**, aktifkan enam scope berikut:
@@ -52,19 +57,38 @@ langkah di sini yang gagal kalau dilakukan tidak berurutan atau di tempat yang s
 
 ## Langkah 2 — Isi `.env` aplikasi
 
+**Di server/VPS** (cukup `APP_URL`, Redirect URI diturunkan otomatis darinya):
+
 ```env
+APP_URL=https://tahfid.namasekolah.sch.id
 CANVA_CLIENT_ID=<client id dari langkah 1>
 CANVA_CLIENT_SECRET=<client secret dari langkah 1>
+# CANVA_REDIRECT_URI tidak perlu diisi — otomatis:
+# https://tahfid.namasekolah.sch.id/administrasi/pengaturan/canva/callback
+```
+
+**Di komputer lokal** (`APP_URL` biasanya `localhost`, yang ditolak Canva, jadi Redirect URI
+diisi manual):
+
+```env
+CANVA_CLIENT_ID=<client id>
+CANVA_CLIENT_SECRET=<client secret>
 CANVA_REDIRECT_URI=http://127.0.0.1:3000/administrasi/pengaturan/canva/callback
 ```
 
-Restart server (`bun run dev` / `bun run start`) supaya `.env` yang baru terbaca — Bun
-hanya memuat `.env` sekali saat aplikasi mulai berjalan.
+Restart aplikasi supaya `.env` yang baru terbaca — Bun hanya memuat `.env` sekali saat
+aplikasi mulai berjalan (`pm2 restart ngaji --update-env` di server, atau hentikan lalu
+jalankan lagi `bun run dev` di lokal).
+
+Setelah restart, buka **Administrasi → Pengaturan → Integrasi Canva**. Panel
+**Pemeriksaan Konfigurasi Server** di bagian atas menampilkan apakah Client ID/Secret sudah
+terbaca dan Redirect URI mana yang benar-benar dipakai. Kalau alamatnya tidak cocok dengan
+domain yang sedang Anda buka, akan muncul peringatan merah.
 
 ## Langkah 3 — Desain & publish Brand Template
 
 1. Buat desain laporan di Canva seperti biasa (ukuran, warna, tata letak bebas sesuai
-   selera sekolah).
+   selera sekolah). Logo, nama sekolah, dan kontak cukup ditulis langsung di desain.
 2. Setelah desainnya siap, publish jadi Brand Template: **File → Save as Brand Template**
    (atau **Share → More → Brand Template** tergantung versi Canva Anda), pilih folder, lalu
    **Publish**.
@@ -87,11 +111,11 @@ Ini bagian yang paling sering salah arah, jadi diperhatikan baik-baik urutannya.
    | Nama kolom | Jenis | Dipakai untuk baris di desain |
    |---|---|---|
    | `nama` | Teks | Nama siswa |
-   | `pekan` | Teks | Nomor pekan berjalan |
-   | `ayat` | Teks | Tambahan hafalan pekan ini |
+   | `pekan` | Teks | Nomor pekan berjalan (`-` bila tanggal mulai semester belum diatur) |
+   | `ayat` | Teks | Tambahan hafalan 7 hari terakhir, mis. `12 ayat.` |
    | `ayat_sebelum` | Teks | Total hafalan sebelum tambahan pekan ini |
    | `ayat_total` | Teks | Total hafalan keseluruhan setelah tambahan pekan ini |
-   | `foto` | Gambar | Foto siswa |
+   | `foto` | Gambar | Foto siswa (dilewati bila siswa belum punya foto) |
 
    **Nama kolom harus persis sama** (huruf kecil semua, pakai garis bawah, tanpa spasi) —
    ini yang dicocokkan langsung dengan kode aplikasi (`src/lib/canva.ts`). Kalau typo, field
@@ -121,31 +145,96 @@ Ini bagian yang paling sering salah arah, jadi diperhatikan baik-baik urutannya.
 
 ## Langkah 6 — Hubungkan akun di aplikasi
 
-1. Masuk sebagai admin, buka **Administrasi → Pengaturan → Integrasi Canva**.
-2. Klik **"Hubungkan Akun Canva"** → login/pilih akun Canva yang **rolenya Brand Designer/
+1. Masuk sebagai admin **lewat alamat yang sama dengan Redirect URI** (di VPS: buka
+   `https://domain-anda/...`, bukan alamat IP server), lalu buka **Administrasi → Pengaturan
+   → Integrasi Canva**.
+2. Pastikan panel **Pemeriksaan Konfigurasi Server** hijau semua.
+3. Klik **"Hubungkan Akun Canva"** → login/pilih akun Canva yang **rolenya Brand Designer/
    Admin** di Team yang sama dengan Brand Template tadi → setujui izin yang diminta.
-3. Setelah kembali dan status berubah jadi "Terhubung", isi kolom **ID Brand Template**
+4. Setelah kembali dan status berubah jadi "Terhubung", isi kolom **ID Brand Template**
    dengan ID dari Langkah 5, klik **Simpan**.
 
 ## Langkah 7 — Uji coba
 
-Buka **Input › Hafalan Qur'an**, pilih satu siswa, klik **"Cetak via Canva"** dulu (satu
-siswa) sebelum mencoba **"Cetak via Canva Sekelas (ZIP)"**. Proses satu laporan lewat Canva
-memakan waktu **15 detik sampai beberapa menit** (normal — aplikasi mengisi desain lewat
-Autofill API lalu mengekspornya sebagai PDF, ini proses jaringan ke server Canva, bukan
-proses lokal). Untuk kelas besar, ZIP diproses **satu siswa per satu** (bukan bersamaan)
-supaya tidak melanggar batas kecepatan API Canva — makin banyak siswa, makin lama totalnya
-(perkirakan 1–3 menit per siswa untuk kelas besar).
+1. Buka **Input › Hafalan Qur'an**, pilih kelas, buka satu siswa, lalu klik
+   **"Buat Laporan Pekanan (Canva)"**.
+2. Anda dibawa ke **Input › Antrean Laporan**. Halaman ini memperbarui diri sendiri tiap
+   5 detik. Satu laporan biasanya selesai dalam 15–60 detik, lalu tombol **Unduh PDF**
+   muncul.
+3. Kalau berhasil, coba **"Buat Laporan Pekanan Sekelas (Canva)"**. Hasilnya satu ZIP.
+
+### Cara kerja antrean (FIFO)
+
+- Setiap tombol hanya **memasukkan permintaan ke antrean** yang tersimpan di basis data.
+  Satu pekerja di server memproses **satu siswa demi satu**, urut permintaan yang masuk
+  lebih dulu, untuk semua guru sekaligus. Permintaan guru B menunggu sampai permintaan guru A
+  yang masuk lebih dulu selesai.
+- **Halaman boleh ditutup.** Prosesnya berjalan di server, bukan di peramban. Kalau server
+  restart di tengah jalan, siswa yang sedang diproses dimasukkan lagi ke antrean.
+- Jeda antar siswa sekitar 5 detik, mengikuti batas Canva: **75 ekspor per 5 menit** dan
+  **500 ekspor per hari** per akun Canva. Kelas 30 siswa kira-kira selesai dalam 5–15 menit.
+  Seluruh sekolah (±340 siswa) masih di bawah batas harian, tapi sebaiknya dicicil per kelas.
+- Siswa yang gagal karena galat sesaat (jaringan, Canva sibuk) dicoba ulang otomatis
+  hingga 3 kali. Yang tetap gagal tercantum di halaman antrean (dan di `RINGKASAN.txt` dalam
+  ZIP), dan bisa diulang lewat tombol **Ulangi yang gagal**.
+- Kalau koneksi Canva terputus, antrean **berhenti sementara** (siswa tidak ditandai gagal)
+  dan otomatis lanjut setelah admin menghubungkan ulang.
+- Kelas/siswa yang sudah ada di antrean tidak bisa dimasukkan dua kali.
+- Hasil disimpan di `data/reports/` selama 7 hari, lalu dihapus otomatis.
+- Setiap laporan membuat satu desain baru di akun Canva yang terhubung. Sesekali rapikan
+  folder **Projects** di Canva bila terasa penuh.
+
+## Pindah ke VPS — daftar periksa
+
+Gejala khas: semuanya lancar di komputer lokal, tetapi di VPS tombol "Hubungkan" berakhir
+di halaman galat, kembali ke `127.0.0.1`, atau koneksi Canva tiba-tiba putus sendiri.
+Periksa berurutan:
+
+1. **`.env` di VPS.** Berkas `.env` tidak ikut git, jadi harus dibuat sendiri di server:
+   ```sh
+   cd ~/apps/tahfidbn       # folder aplikasi di VPS
+   nano .env
+   ```
+   Isi `APP_URL=https://domain-anda`, `CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET`. **Hapus**
+   baris `CANVA_REDIRECT_URI` kalau masih berisi `127.0.0.1` hasil salin dari lokal.
+   Lalu `pm2 restart ngaji --update-env`.
+2. **Authorized redirects di Canva.** Tambahkan
+   `https://domain-anda/administrasi/pengaturan/canva/callback` (Langkah 1 nomor 4). Alamat
+   lokal boleh tetap ada.
+3. **Buka aplikasi lewat domain https**, bukan IP server. Cookie login dan cookie OAuth
+   hanya berlaku di alamat tempat Anda membukanya. Kalau Anda membuka lewat IP tetapi
+   Canva mengembalikan ke domain, prosesnya gagal dengan pesan "koneksi ke Canva gagal
+   atau kedaluwarsa".
+4. **Hubungkan ulang di VPS.** Buka **Pengaturan → Integrasi Canva**, klik **Putuskan
+   Koneksi** (bila tampil "Terhubung"), lalu **Hubungkan Akun Canva** lagi. ID Brand Template
+   tidak hilang.
+
+   Ini wajib bila basis data VPS dulu disalin dari komputer lokal. Token Canva ikut tersalin,
+   dan **refresh token Canva hanya bisa dipakai sekali**. Begitu laptop dan VPS sama-sama
+   memakainya, Canva mencabut koneksinya ("Refresh token used twice" / "Token lineage has
+   been revoked").
+5. **Jangan memakai Canva dari salinan basis data produksi.** Bila Anda menyalin `ngaji.db`
+   dari VPS ke laptop untuk diuji, klik **Putuskan Koneksi** di laptop *sebelum* membuat
+   laporan, atau jalankan:
+   ```sh
+   bun -e "import {Database} from 'bun:sqlite'; new Database('data/ngaji.db').exec(\"DELETE FROM settings WHERE key IN ('canva_access_token','canva_refresh_token','canva_token_expires_at')\")"
+   ```
+   Kalau tidak, laptop bisa "membakar" token dan VPS ikut terputus.
+6. **Cek log** bila masih gagal: `pm2 logs ngaji --lines 100`. Baris berawalan
+   `[antrean-laporan]` menjelaskan kenapa antrean berhenti atau siswa gagal.
 
 ## Masalah yang sering ditemui
 
 | Gejala | Penyebab | Solusi |
 |---|---|---|
 | "tahfid-bn belum mengonfigurasi URI pengalihan" | Redirect URL diisi di halaman/App yang salah, atau belum diisi sama sekali | Cek App yang benar di canva.com/developers, isi di menu **Authentication** (bukan Webhook) |
+| Setelah login Canva, peramban membuka `127.0.0.1` dan gagal | `CANVA_REDIRECT_URI` di `.env` VPS masih alamat lokal | Hapus baris itu dan pastikan `APP_URL` berisi domain https, lalu restart. Panel Pemeriksaan Konfigurasi akan menandainya merah |
+| "Redirect URI mismatch" | Alamat di `.env` dan di Canva tidak sama persis (http/https, garis miring di akhir, www) | Samakan persis dengan yang tampil di panel Pemeriksaan Konfigurasi |
+| "Proses koneksi ke Canva gagal atau kedaluwarsa" | Aplikasi dibuka lewat alamat berbeda dari Redirect URI (mis. IP vs domain), atau lebih dari 10 menit di halaman login Canva | Buka aplikasi lewat domain yang sama dengan Redirect URI, lalu ulangi |
 | Galat "The URL cannot be any form of localhost" | Redirect URL diisi di kolom **Webhook** (Notifications endpoint), bukan Authentication | Pindah ke menu Authentication → Authorized redirects |
 | `not_found`, "Brand template with id '...' not found" | ID yang dipakai adalah ID desain (`DA...`), bukan ID Brand Template (`EA...`) | Ambil ID dari halaman Brand Kit → Brand Templates, bukan dari URL edit desain |
 | Opsi "Data field"/"Connect data" tidak pernah muncul di elemen mana pun | Role akun Canva bukan Brand Designer/Admin di Team tsb, atau desainnya belum dipublish sebagai Brand Template | Minta Admin Team menaikkan role akun (Team Settings → People), dan pastikan Langkah 3 (publish Brand Template) sudah dilakukan |
 | Satu baris di laporan selalu menampilkan `-` atau teks placeholder | Elemen itu belum disambungkan ("Connect data") ke kolom data-nya | Buka lagi Bulk Create, drag/connect kolom yang benar ke elemen tsb |
-| "Refresh token used twice" / "Token lineage has been revoked" | Koneksi OAuth Canva rusak (biasa terjadi kalau token dipakai dari dua tempat berbeda, mis. server pengujian terpisah) | **Administrasi → Pengaturan → Integrasi Canva** → Putuskan Koneksi → Hubungkan Akun Canva lagi. ID Brand Template yang sudah tersimpan tidak akan hilang |
-| "The socket connection was closed unexpectedly" | Galat jaringan sesaat ke server Canva | Coba cetak ulang. Kalau berulang terus-menerus, cek koneksi internet sekolah |
-| Proses ZIP sekelas lama sekali / tampak macet | Normal untuk kelas besar — diproses satu per satu, bukan bug | Tunggu sampai selesai (bisa beberapa menit); jangan tutup halaman sebelum unduhan mulai |
+| Status Canva tiba-tiba "belum terhubung" dan antrean berhenti | Refresh token ditolak Canva — biasanya karena token dipakai dari dua tempat (laptop & VPS) | Lihat [Pindah ke VPS](#pindah-ke-vps--daftar-periksa) nomor 4–5, lalu hubungkan ulang. Antrean lanjut sendiri |
+| "The socket connection was closed unexpectedly" | Galat jaringan sesaat ke server Canva | Dicoba ulang otomatis. Kalau tetap gagal, klik **Ulangi yang gagal** |
+| Antrean lama sekali | Normal — satu siswa per ±5–30 detik supaya tidak melanggar batas Canva | Halaman boleh ditutup; buka lagi Input › Antrean Laporan nanti |

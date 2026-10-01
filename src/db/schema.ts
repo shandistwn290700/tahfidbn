@@ -111,8 +111,50 @@ function createProgressTables() {
   `);
 }
 
+/**
+ * Antrean FIFO pembuatan Laporan Pekanan via Canva (lihat src/lib/report-queue.ts).
+ * Satu job = satu permintaan guru (sekelas atau satu siswa); satu item = satu siswa.
+ * Nama kelas/siswa ikut disalin supaya riwayat antrean tetap terbaca walau datanya
+ * kemudian dihapus.
+ */
+function createReportQueueTables() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS report_jobs (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      kind        TEXT NOT NULL,
+      class_id    INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+      label       TEXT NOT NULL,
+      week_number INTEGER,
+      created_by  INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      status      TEXT NOT NULL DEFAULT 'queued',
+      created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+      started_at  TEXT,
+      finished_at TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_report_jobs_status ON report_jobs(status);
+
+    CREATE TABLE IF NOT EXISTS report_job_items (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      job_id       INTEGER NOT NULL REFERENCES report_jobs(id) ON DELETE CASCADE,
+      student_id   INTEGER REFERENCES students(id) ON DELETE SET NULL,
+      student_name TEXT NOT NULL,
+      position     INTEGER NOT NULL,
+      status       TEXT NOT NULL DEFAULT 'pending',
+      attempts     INTEGER NOT NULL DEFAULT 0,
+      error        TEXT,
+      file_name    TEXT,
+      finished_at  TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_report_items_job ON report_job_items(job_id, position);
+    CREATE INDEX IF NOT EXISTS idx_report_items_status ON report_job_items(status);
+  `);
+}
+
 export function initializeDatabase() {
   createBaseTables();
   runMigrations();
   createProgressTables();
+  createReportQueueTables();
 }

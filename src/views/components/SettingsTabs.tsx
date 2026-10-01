@@ -2,7 +2,7 @@ import type { FC } from "hono/jsx";
 
 const TABS = [
   { href: "/administrasi/pengaturan", label: "Umum", icon: "tune" },
-  { href: "/administrasi/pengaturan/laporan", label: "Laporan Pekanan", icon: "description" },
+  { href: "/administrasi/pengaturan/laporan", label: "Laporan & Semester", icon: "description" },
   { href: "/administrasi/pengaturan/backup", label: "Cadangan & Pemulihan", icon: "backup" },
   { href: "/administrasi/pengaturan/canva", label: "Integrasi Canva", icon: "extension" },
 ];
