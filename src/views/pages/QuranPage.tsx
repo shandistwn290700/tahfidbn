@@ -167,7 +167,7 @@ export const QuranPage: FC<{
                   {selectedSurah.number}. {selectedSurah.name}
                 </h2>
                 <p class="text-text-secondary dark:text-text-secondary-dark text-sm">
-                  {selectedSurah.totalAyahs} ayat
+                  {selectedSurah.meaning} &bull; {selectedSurah.revelation} &bull; {selectedSurah.totalAyahs} ayat
                 </p>
               </div>
               <div class="flex flex-wrap items-center gap-2 sm:gap-3">

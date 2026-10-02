@@ -77,7 +77,12 @@ dihapus oleh migrasi.
 
 ### Alur perhitungan hafalan
 
-- `src/data/quran-meta.ts` — metadata statis Tahfid (114 surah, batas juz)
+- `src/data/quran-meta.ts` — metadata statis Tahfid (114 surah, batas juz). Daftar surah
+  (nama latin ejaan Kemenag, nama Arab, arti, tempat turun) ada di `src/data/surah-list.ts`,
+  dan teks ayat (Arab, latin, terjemahan) di `data/quran/surah-NNN.json`. Keduanya **dibuat
+  oleh `bun run build:quran-data`** dari API Al-Quran v2.0 equran.id — jangan disunting
+  manual. Aplikasi tidak memanggil API saat berjalan. Nama surah tidak disimpan di basis
+  data (hanya nomornya), jadi mengganti ejaan aman.
 - `src/lib/progress-calc.ts` — perhitungan peringkat Tahfid. `getRankedStudents()` sengaja
   membaca **tiga query saja** (siswa, hafalan, tren) lalu menghitung di memori; jangan
   kembalikan pola satu query per siswa.

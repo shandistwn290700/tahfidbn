@@ -32,11 +32,16 @@ quran.get("/", (c) => {
     : (bookmark?.surah_number ?? 1);
   const selectedSurah = getSurah(selectedSurahNumber) || SURAHS[0]!;
 
+  // Abaikan huruf besar, tanda hubung, apostrof, dan spasi: "yasin", "al insyirah",
+  // dan "alinsyirah" sama-sama menemukan surahnya. Arti surah ("pembukaan") juga dicari.
+  const normalize = (text: string) => text.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const query = normalize(search);
   const filteredSurahs = search
     ? SURAHS.filter(
         (surah) =>
-          surah.name.toLowerCase().includes(search.toLowerCase()) ||
-          surah.number.toString() === search
+          surah.number.toString() === search ||
+          (query !== "" &&
+            (normalize(surah.name).includes(query) || normalize(surah.meaning).includes(query)))
       )
     : SURAHS;
 
