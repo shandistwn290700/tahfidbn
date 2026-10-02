@@ -197,6 +197,7 @@ JAVA_HOME="C:/Program Files/Android/Android Studio/jbr" ./gradlew assembleReleas
 | Hak akses guru/kelas | `src/lib/access.ts` |
 | Perhitungan peringkat Tahfid | `src/lib/progress-calc.ts` |
 | Laporan Periode (tengah semester / semester penuh) | `src/lib/period-report.ts`; PDF-nya `src/lib/weekly-report.ts` |
+| Dashboard admin (tambahan ayat & guru aktif per hari/pekan/bulan/semester, tanggal WIB) | `src/lib/dashboard.ts`, `src/routes/administrasi/dashboard.tsx`; grafik `src/views/components/ColumnChart.tsx` (HTML/CSS, tanpa CDN) |
 | Laporan Pekanan via Canva (OAuth, Autofill, ekspor) | `src/lib/canva.ts` |
 | Antrean FIFO Laporan Pekanan & pekerjanya | `src/lib/report-queue.ts`, `src/routes/laporan.tsx` |
 | Validasi masukan angka & redirect | `src/lib/http.ts` |

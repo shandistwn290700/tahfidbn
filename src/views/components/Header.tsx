@@ -26,6 +26,7 @@ const ThemeToggle: FC<{ id: string }> = ({ id }) => (
 );
 
 const ADMIN_LINKS = [
+  { href: "/administrasi/dashboard", label: "Dashboard", icon: "monitoring" },
   { href: "/administrasi/kelas", label: "Kelas", icon: "school" },
   { href: "/administrasi/siswa", label: "Siswa", icon: "groups" },
   { href: "/administrasi/pengguna", label: "Pengguna", icon: "manage_accounts" },

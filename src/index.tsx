@@ -15,6 +15,7 @@ import { kelasRoutes } from "./routes/administrasi/kelas.tsx";
 import { siswaRoutes } from "./routes/administrasi/siswa.tsx";
 import { penggunaRoutes } from "./routes/administrasi/pengguna.tsx";
 import { pengaturanRoutes } from "./routes/administrasi/pengaturan.tsx";
+import { dashboardRoutes } from "./routes/administrasi/dashboard.tsx";
 import "./lib/photos.ts";
 import { startReportWorker } from "./lib/report-queue.ts";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
@@ -89,9 +90,10 @@ app.route("/administrasi/kelas", kelasRoutes);
 app.route("/administrasi/siswa", siswaRoutes);
 app.route("/administrasi/pengguna", penggunaRoutes);
 app.route("/administrasi/pengaturan", pengaturanRoutes);
+app.route("/administrasi/dashboard", dashboardRoutes);
 
 // Membuka /administrasi langsung diarahkan ke submenu pertama.
-app.get("/administrasi", (c) => c.redirect("/administrasi/kelas"));
+app.get("/administrasi", (c) => c.redirect("/administrasi/dashboard"));
 
 app.notFound((c) =>
   c.html(
