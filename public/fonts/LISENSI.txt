@@ -1,0 +1,14 @@
+Font di folder ini dilayani dari server sendiri (bukan CDN) supaya halaman
+Al-Qur'an tetap utuh saat internet sekolah mati.
+
+amiri-quran.woff2
+  Amiri Quran 1.003 — https://github.com/aliftype/amiri
+  Lisensi: SIL Open Font License 1.1 (lihat OFL-Amiri.txt).
+  Dikonversi dari AmiriQuran.ttf ke WOFF2 tanpa mengubah isinya.
+
+kaligrafi-surah.woff2
+  "arab quran islamic 140" oleh elharrak —
+  https://www.fontspace.com/arab-quran-islamic-140-font-f85165
+  Lisensi: Public Domain. Varian angka Latin (ArabQuranIslamic140-K7n4W.ttf),
+  dikonversi ke WOFF2. Font ini hanya berisi kaligrafi nama surah: teks
+  "﴿2﴾" dirangkai otomatis menjadi kaligrafi "سورة البقرة" (1–114).

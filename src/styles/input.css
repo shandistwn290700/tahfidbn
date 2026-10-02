@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Font halaman Al-Qur'an, dilayani dari public/fonts (bukan CDN) supaya tetap
+ * utuh tanpa internet. Hanya diunduh peramban saat dipakai, yaitu di /quran.
+ * Lisensi: public/fonts/LISENSI.txt.
+ */
+@font-face {
+  font-family: "Amiri Quran";
+  src: url("/static/fonts/amiri-quran.woff2") format("woff2");
+  font-display: swap;
+}
+/* Hanya berisi kaligrafi nama surah: teks "﴿2﴾" dirangkai menjadi "سورة البقرة".
+   `block` supaya teks mentah "﴿2﴾" tidak sempat terlihat saat font dimuat. */
+@font-face {
+  font-family: "Kaligrafi Surah";
+  src: url("/static/fonts/kaligrafi-surah.woff2") format("woff2");
+  font-display: block;
+}
+
 @layer base {
   body {
     @apply bg-background text-text-main font-display transition-colors duration-200 dark:bg-background-dark dark:text-text-main-dark;

@@ -16,6 +16,9 @@ export default {
       },
       fontFamily: {
         display: ["Lexend", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        // Teks ayat & kaligrafi nama surah, dari public/fonts (lihat input.css)
+        quran: ["\"Amiri Quran\"", "serif"],
+        surah: ["\"Kaligrafi Surah\"", "serif"],
       },
       borderRadius: {
         DEFAULT: "0.25rem",

@@ -166,10 +166,8 @@ export const QuranPage: FC<{
                 <h2 class="text-text-main dark:text-text-main-dark text-xl sm:text-2xl font-black tracking-tight">
                   {selectedSurah.number}. {selectedSurah.name}
                 </h2>
-                <p class="text-text-secondary dark:text-text-secondary-dark text-sm flex items-center gap-2">
-                  <span>{selectedSurah.nameArabic}</span>
-                  <span class="size-1 bg-slate-300 rounded-full" />
-                  <span>{selectedSurah.totalAyahs} ayat</span>
+                <p class="text-text-secondary dark:text-text-secondary-dark text-sm">
+                  {selectedSurah.totalAyahs} ayat
                 </p>
               </div>
               <div class="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -186,6 +184,25 @@ export const QuranPage: FC<{
                   </div>
                 )}
               </div>
+            </div>
+
+            {/*
+              Kaligrafi nama surah. Font "Kaligrafi Surah" merangkai teks "﴿n﴾"
+              (n = 1–114) menjadi satu glif "سورة …"; teks mentahnya disembunyikan
+              dari pembaca layar, yang membaca aria-label.
+            */}
+            <div
+              class="flex justify-center -mt-1 mb-6"
+              role="img"
+              aria-label={`Surah ${selectedSurah.name} (${selectedSurah.nameArabic})`}
+            >
+              <span
+                class="font-surah text-6xl sm:text-7xl leading-none text-text-main dark:text-text-main-dark"
+                dir="rtl"
+                aria-hidden="true"
+              >
+                ﴿{selectedSurah.number}﴾
+              </span>
             </div>
 
             {loadError ? (
@@ -269,7 +286,8 @@ export const QuranPage: FC<{
                         </div>
 
                         <div class="flex-1 flex flex-col gap-4">
-                          <p class="text-right text-3xl leading-[3.5rem] text-text-main dark:text-text-main-dark font-display tracking-wide" dir="rtl">
+                          {/* Tanpa letter-spacing: jarak antarhuruf memutus sambungan huruf Arab */}
+                          <p class="text-right font-quran text-[2rem] sm:text-[2.25rem] leading-[2.2] text-text-main dark:text-text-main-dark" dir="rtl">
                             {ayah.text}
                           </p>
                           <p class="translation-text text-text-secondary dark:text-text-secondary-dark text-sm leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-3 italic">
