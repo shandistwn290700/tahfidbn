@@ -19,8 +19,9 @@ const ThemeToggle: FC<{ id: string }> = ({ id }) => (
     data-label="Tema"
     aria-label="Ganti tema terang atau gelap"
   >
-    <span class="material-symbols-outlined theme-icon-light hidden dark:block">light_mode</span>
-    <span class="material-symbols-outlined theme-icon-dark block dark:hidden">dark_mode</span>
+    {/* Ikon menunjukkan tema yang sedang aktif: matahari = terang, bulan = gelap */}
+    <span class="material-symbols-outlined theme-icon-light block dark:hidden">light_mode</span>
+    <span class="material-symbols-outlined theme-icon-dark hidden dark:block">dark_mode</span>
   </button>
 );
 
@@ -169,12 +170,17 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
   return (
     <>
       <header class="sticky top-0 z-40 flex flex-col border-b border-solid border-border-light dark:border-border-light-dark bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-        <div class="flex items-center justify-between px-4 sm:px-8 w-full h-16">
-          <a href="/leaderboard" class="flex items-center gap-3 shrink-0">
-            <div class="size-8 text-primary">
+        <div class="flex items-center justify-between gap-3 px-4 sm:px-8 w-full h-16">
+          {/*
+            Di layar kecil nama situs (bisa diubah admin, sering panjang) boleh
+            menyusut dan turun ke dua baris; tanpa min-w-0 ia mendorong tombol
+            tema & menu keluar layar sehingga seluruh halaman bisa digeser.
+          */}
+          <a href="/leaderboard" class="flex items-center gap-2 sm:gap-3 min-w-0 lg:shrink-0">
+            <div class="size-8 shrink-0 text-primary">
               <Logo />
             </div>
-            <h2 class="text-text-main dark:text-text-main-dark text-lg sm:text-xl font-bold leading-tight tracking-[-0.015em]">
+            <h2 class="text-text-main dark:text-text-main-dark text-base sm:text-xl font-bold leading-tight tracking-[-0.015em] line-clamp-2 lg:line-clamp-none">
               {getSiteName()}
             </h2>
           </a>
@@ -329,7 +335,7 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
           </div>
 
           {/* Tombol layar kecil */}
-          <div class="flex lg:hidden items-center gap-1">
+          <div class="flex lg:hidden items-center gap-1 shrink-0">
             <ThemeToggle id="tema-mobile" />
             <button
               id="mobile-menu-btn"
