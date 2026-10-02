@@ -1,6 +1,7 @@
 import type { FC } from "hono/jsx";
 import type { User } from "../../types.ts";
 import { getSiteName } from "../../lib/settings.ts";
+import { homePath } from "../../lib/http.ts";
 
 const Logo: FC = () => (
   <svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -25,8 +26,10 @@ const ThemeToggle: FC<{ id: string }> = ({ id }) => (
   </button>
 );
 
+/** Halaman utama admin; tampil sebagai menu paling depan, bukan bagian Administrasi. */
+const DASHBOARD_LINK = { href: "/dashboard", label: "Dashboard", icon: "monitoring" };
+
 const ADMIN_LINKS = [
-  { href: "/administrasi/dashboard", label: "Dashboard", icon: "monitoring" },
   { href: "/administrasi/kelas", label: "Kelas", icon: "school" },
   { href: "/administrasi/siswa", label: "Siswa", icon: "groups" },
   { href: "/administrasi/pengguna", label: "Pengguna", icon: "manage_accounts" },
@@ -184,7 +187,7 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
             menyusut dan turun ke dua baris; tanpa min-w-0 ia mendorong tombol
             tema & menu keluar layar sehingga seluruh halaman bisa digeser.
           */}
-          <a href="/leaderboard" class="flex items-center gap-2 sm:gap-3 min-w-0 lg:shrink-0">
+          <a href={homePath(user.role)} class="flex items-center gap-2 sm:gap-3 min-w-0 lg:shrink-0">
             <div class="size-8 shrink-0 text-primary">
               <Logo />
             </div>
@@ -196,6 +199,12 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
           {/* Navigasi layar lebar */}
           <div class="hidden lg:flex flex-1 justify-end gap-6 items-center">
             <nav class="flex items-center gap-7">
+              {isAdmin && (
+                <a class={deskLink(currentPath === DASHBOARD_LINK.href)} href={DASHBOARD_LINK.href}>
+                  {DASHBOARD_LINK.label}
+                </a>
+              )}
+
               <div class="relative">
                 <button
                   id="tombol-papan-peringkat"
@@ -366,6 +375,19 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
         class="hidden lg:hidden fixed inset-0 top-16 z-30 bg-background dark:bg-background-dark overflow-y-auto"
       >
         <nav class="flex flex-col p-4 gap-1">
+          {isAdmin && (
+            <a
+              href={DASHBOARD_LINK.href}
+              class={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-base transition-colors ${
+                currentPath === DASHBOARD_LINK.href
+                  ? "bg-primary/10 text-primary font-bold"
+                  : "text-text-main dark:text-text-main-dark hover:bg-slate-100 dark:hover:bg-slate-800"
+              }`}
+            >
+              <span class="material-symbols-outlined">{DASHBOARD_LINK.icon}</span>
+              {DASHBOARD_LINK.label}
+            </a>
+          )}
           <button
             id="papan-peringkat-mobile-toggle"
             type="button"

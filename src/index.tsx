@@ -15,7 +15,8 @@ import { kelasRoutes } from "./routes/administrasi/kelas.tsx";
 import { siswaRoutes } from "./routes/administrasi/siswa.tsx";
 import { penggunaRoutes } from "./routes/administrasi/pengguna.tsx";
 import { pengaturanRoutes } from "./routes/administrasi/pengaturan.tsx";
-import { dashboardRoutes } from "./routes/administrasi/dashboard.tsx";
+import { dashboardRoutes } from "./routes/dashboard.tsx";
+import { homePath } from "./lib/http.ts";
 import "./lib/photos.ts";
 import { startReportWorker } from "./lib/report-queue.ts";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
@@ -66,16 +67,18 @@ app.get("/sw.js", serveStatic({ path: "./public/sw.js" }));
 
 app.get("/", (c) => {
   const sessionId = getCookie(c, "session");
-  if (sessionId && getSessionUser(sessionId)) {
-    return c.redirect("/leaderboard");
+  const user = sessionId ? getSessionUser(sessionId) : null;
+  if (user) {
+    return c.redirect(homePath(user.role));
   }
   return c.redirect("/login");
 });
 
 app.get("/login", (c) => {
   const sessionId = getCookie(c, "session");
-  if (sessionId && getSessionUser(sessionId)) {
-    return c.redirect("/leaderboard");
+  const user = sessionId ? getSessionUser(sessionId) : null;
+  if (user) {
+    return c.redirect(homePath(user.role));
   }
   return c.html(<LoginPage error={c.req.query("error")} success={c.req.query("success")} />);
 });
@@ -90,10 +93,12 @@ app.route("/administrasi/kelas", kelasRoutes);
 app.route("/administrasi/siswa", siswaRoutes);
 app.route("/administrasi/pengguna", penggunaRoutes);
 app.route("/administrasi/pengaturan", pengaturanRoutes);
-app.route("/administrasi/dashboard", dashboardRoutes);
+app.route("/dashboard", dashboardRoutes);
 
 // Membuka /administrasi langsung diarahkan ke submenu pertama.
-app.get("/administrasi", (c) => c.redirect("/administrasi/dashboard"));
+app.get("/administrasi", (c) => c.redirect("/administrasi/kelas"));
+// Dashboard sempat berada di /administrasi/dashboard; tautan lama tetap berfungsi.
+app.get("/administrasi/dashboard", (c) => c.redirect("/dashboard"));
 
 app.notFound((c) =>
   c.html(

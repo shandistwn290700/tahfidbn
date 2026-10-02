@@ -76,7 +76,7 @@ export const DashboardPage: FC<{
   return (
     <PageShell
       user={user}
-      currentPath="/administrasi/dashboard"
+      currentPath="/dashboard"
       title="Dashboard"
       heading="Dashboard"
       subheading="Perkembangan hafalan seluruh siswa dan keaktifan guru dalam menginput. Tanggal mengikuti WIB."
@@ -118,7 +118,7 @@ export const DashboardPage: FC<{
         <nav class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/60 sm:w-auto" aria-label="Rentang waktu">
           {DASHBOARD_RANGES.map((r) => (
             <a
-              href={`/administrasi/dashboard?rentang=${r.value}`}
+              href={`/dashboard?rentang=${r.value}`}
               aria-current={r.value === range ? "page" : undefined}
               class={`px-1 sm:px-4 py-2 rounded-lg text-center text-[13px] sm:text-sm font-semibold transition-colors ${
                 r.value === range

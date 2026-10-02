@@ -29,6 +29,14 @@ export function escapeLikePattern(term: string): string {
   return term.replace(/[\\%_]/g, (match) => `\\${match}`);
 }
 
+/**
+ * Halaman awal setelah login, saat membuka "/", dan tujuan logo di header:
+ * admin ke Dashboard, guru ke Papan Peringkat.
+ */
+export function homePath(role: string): string {
+  return role === "admin" ? "/dashboard" : "/leaderboard";
+}
+
 export function redirectWith(
   c: Context,
   path: string,

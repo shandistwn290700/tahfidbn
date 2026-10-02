@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { verifyCredentials, createSession, deleteSession, getSessionUser } from "../lib/session.ts";
+import { homePath } from "../lib/http.ts";
 import { db } from "../db/connection.ts";
 import { audit } from "../lib/logger.ts";
 
@@ -86,7 +87,7 @@ auth.post("/login", async (c) => {
     path: "/",
   });
 
-  return c.redirect("/leaderboard");
+  return c.redirect(homePath(user.role));
 });
 
 auth.post("/logout", (c) => {

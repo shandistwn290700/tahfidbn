@@ -1,13 +1,13 @@
 import { Hono } from "hono";
-import { authMiddleware, adminMiddleware } from "../../middleware/auth.ts";
+import { authMiddleware, adminMiddleware } from "../middleware/auth.ts";
 import {
   getDashboardSummary,
   getProgressSeries,
   getTeacherActivity,
   parseRange,
-} from "../../lib/dashboard.ts";
-import { DashboardPage } from "../../views/pages/DashboardPage.tsx";
-import type { Env } from "../../types.ts";
+} from "../lib/dashboard.ts";
+import { DashboardPage } from "../views/pages/DashboardPage.tsx";
+import type { Env } from "../types.ts";
 
 const dashboard = new Hono<Env>();
 
