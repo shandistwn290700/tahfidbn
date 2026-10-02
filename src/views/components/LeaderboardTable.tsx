@@ -131,7 +131,7 @@ const Row: FC<{ member: RankedStudent; showClassRank: boolean }> = ({
         <div class="flex items-center gap-3">
           <div class="flex-1 rounded-full h-2 bg-slate-100 dark:bg-slate-800">
             <div
-              class={`h-2 rounded-full ${
+              class={`isi-bar h-2 rounded-full ${
                 member.progress_percent > 80
                   ? "bg-primary"
                   : member.progress_percent > 50

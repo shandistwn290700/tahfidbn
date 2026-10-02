@@ -60,3 +60,67 @@ html.tanpa-ikon .ikon-berlabel {
   padding-left: 0.6rem;
   padding-right: 0.6rem;
 }
+
+/*
+ * Transisi halus. Semua bagian yang muncul/hilang di aplikasi ini ditukar
+ * lewat kelas `hidden` atau <details>; animasi CSS otomatis diputar ulang
+ * setiap kali elemen berubah dari display:none menjadi tampil, jadi cukup
+ * dipasang di sini tanpa mengubah skrip penukarnya.
+ */
+@keyframes muncul-naik {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes muncul-turun {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes muncul {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes isi-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Isi halaman saat dibuka. `backwards` (bukan `both`): setelah selesai <main>
+   kembali tanpa transform, jadi elemen sticky/fixed di dalamnya tidak terpengaruh. */
+main {
+  animation: muncul-naik 0.35s ease-out backwards;
+}
+
+/* Menu HP, dropdown header, tab, dan baris yang bisa dibuka */
+#mobile-menu,
+[id^="panel-"],
+[id$="-mobile-panel"],
+details[open] > summary ~ * {
+  animation: muncul-turun 0.2s ease-out;
+}
+[data-tab-panel] {
+  animation: muncul 0.2s ease-out;
+}
+
+/* Bilah capaian terisi dari kiri */
+.isi-bar {
+  transform-origin: left;
+  animation: isi-bar 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Warna berganti mulus saat tema diganti (kelas dipasang sebentar oleh Header.tsx) */
+html.ganti-tema *,
+html.ganti-tema *::before,
+html.ganti-tema *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease !important;
+}
+
+/* Hormati pengaturan "kurangi animasi" di HP/komputer pengguna */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -137,8 +137,15 @@ const headerScript = `
     var btn = document.getElementById(id);
     if (!btn) return;
     btn.addEventListener('click', function () {
-      var gelap = document.documentElement.classList.toggle('dark');
+      var html = document.documentElement;
+      // Kelas sementara agar warna berganti mulus (lihat .ganti-tema di input.css)
+      html.classList.add('ganti-tema');
+      var gelap = html.classList.toggle('dark');
       localStorage.setItem('theme', gelap ? 'dark' : 'light');
+      clearTimeout(window.__gantiTema);
+      window.__gantiTema = setTimeout(function () {
+        html.classList.remove('ganti-tema');
+      }, 350);
     });
   }
 

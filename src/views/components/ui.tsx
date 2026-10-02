@@ -5,10 +5,10 @@ import type { User } from "../../types.ts";
 import { getSiteName } from "../../lib/settings.ts";
 
 export const BTN_PRIMARY =
-  "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-bold transition-colors shadow-sm disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-bold transition active:scale-[0.97] shadow-sm disabled:opacity-50";
 
 export const BTN_GHOST =
-  "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-border-light dark:border-border-light-dark bg-surface dark:bg-surface-dark text-text-secondary dark:text-text-secondary-dark hover:text-text-main dark:hover:text-text-main-dark hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold transition-colors";
+  "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-border-light dark:border-border-light-dark bg-surface dark:bg-surface-dark text-text-secondary dark:text-text-secondary-dark hover:text-text-main dark:hover:text-text-main-dark hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold transition active:scale-[0.97]";
 
 export const BTN_DANGER =
   "inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-sm font-semibold transition-colors";

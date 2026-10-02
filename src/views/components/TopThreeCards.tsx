@@ -38,7 +38,7 @@ const SecondPlace: FC<{ member: RankedStudent }> = ({ member }) => (
       </div>
       <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
         <div
-          class="bg-slate-400 dark:bg-slate-500 h-2.5 rounded-full"
+          class="isi-bar bg-slate-400 dark:bg-slate-500 h-2.5 rounded-full"
           style={`width: ${Math.max(member.progress_percent, 1.5)}%`}
         />
       </div>
@@ -76,7 +76,7 @@ const FirstPlace: FC<{ member: RankedStudent }> = ({ member }) => (
       </div>
       <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-200 dark:border-slate-700">
         <div
-          class="bg-primary h-3 rounded-full relative overflow-hidden"
+          class="isi-bar bg-primary h-3 rounded-full relative overflow-hidden"
           style={`width: ${Math.max(member.progress_percent, 1.5)}%`}
         >
           {member.progress_percent >= 100 && (
@@ -117,7 +117,7 @@ const ThirdPlace: FC<{ member: RankedStudent }> = ({ member }) => (
       </div>
       <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
         <div
-          class="bg-amber-600/70 dark:bg-amber-600/50 h-2.5 rounded-full"
+          class="isi-bar bg-amber-600/70 dark:bg-amber-600/50 h-2.5 rounded-full"
           style={`width: ${Math.max(member.progress_percent, 1.5)}%`}
         />
       </div>
