@@ -19,6 +19,29 @@ type IDChapter = {
   }[];
 };
 
+/** Transliterasi latin gaya Kemenag dari equran.id. */
+type LatinChapter = {
+  data: {
+    ayat: {
+      nomorAyat: number;
+      teksLatin: string;
+    }[];
+  };
+};
+
+async function fetchLatin(surahNumber: number, totalAyahs: number): Promise<string[]> {
+  const resp = await fetch(`https://equran.id/api/v2/surat/${surahNumber}`);
+  if (!resp.ok) throw new Error(`equran.id menjawab ${resp.status} untuk surah ${surahNumber}.`);
+  const { data } = (await resp.json()) as LatinChapter;
+  // Gagal keras, jangan menimpa berkas data dengan teks latin yang bergeser/kosong
+  if (data.ayat.length !== totalAyahs) {
+    throw new Error(
+      `Jumlah ayat latin surah ${surahNumber} tidak cocok: ${data.ayat.length}, seharusnya ${totalAyahs}.`
+    );
+  }
+  return data.ayat.map((a) => a.teksLatin.trim());
+}
+
 async function buildQuranData() {
   const rootDir = join(import.meta.dir, "..");
   const sourceDir = join(rootDir, "node_modules", "quran-json", "dist", "chapters");
@@ -56,11 +79,14 @@ async function buildQuranData() {
       );
     }
 
+    const latin = await fetchLatin(surah.number, surah.totalAyahs);
+
     const output = {
       surahNumber: surah.number,
       ayahs: chapter.verses.map((verse, index) => ({
         number: verse.id,
         text: verse.text,
+        latin: latin[index],
         translation: translations[index] || "Terjemahan tidak tersedia.",
       })),
     };

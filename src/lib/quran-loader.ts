@@ -6,6 +6,8 @@ import { PublicError } from "./errors.ts";
 export interface QuranAyah {
   number: number;
   text: string;
+  /** Transliterasi latin gaya Kemenag (equran.id), lihat scripts/build-quran-data.ts */
+  latin?: string;
   translation?: string;
 }
 

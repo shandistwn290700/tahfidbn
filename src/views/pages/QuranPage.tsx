@@ -176,7 +176,7 @@ export const QuranPage: FC<{
                   class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-text-secondary dark:text-text-secondary-dark rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-border-light dark:border-border-light-dark"
                 >
                   <span class="material-symbols-outlined text-lg">translate</span>
-                  <span id="translation-status">Tampilkan Terjemahan</span>
+                  <span id="translation-status">Sembunyikan Latin &amp; Arti</span>
                 </button>
                 {Boolean(jumpAyah && jumpAyah > 0) && (
                   <div class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold border border-primary/20 animate-pulse">
@@ -210,7 +210,19 @@ export const QuranPage: FC<{
                 {loadError}
               </div>
             ) : (
-              <div id="ayahs-container" class="flex-1 space-y-4 hide-translation">
+              <div id="ayahs-container" class="flex-1 space-y-4">
+                {/*
+                  Latin & arti tampil secara bawaan. Pilihan menyembunyikannya
+                  (berguna saat latihan hafalan) dibaca di sini, sebelum ayat
+                  dirender, supaya tidak sempat berkedip tampil lalu hilang.
+                */}
+                <script dangerouslySetInnerHTML={{ __html: `
+                  try {
+                    if (localStorage.getItem('sembunyikanLatinArti') === 'true') {
+                      document.currentScript.parentElement.classList.add('hide-translation');
+                    }
+                  } catch (e) {}
+                ` }} />
                 {ayahs.map((ayah) => {
                   const isBookmarked = selectedBookmarkAyah === ayah.number;
                   const isJumpTarget = jumpAyah === ayah.number;
@@ -290,9 +302,16 @@ export const QuranPage: FC<{
                           <p class="text-right font-quran text-[2rem] sm:text-[2.25rem] leading-[2.2] text-text-main dark:text-text-main-dark" dir="rtl">
                             {ayah.text}
                           </p>
-                          <p class="translation-text text-text-secondary dark:text-text-secondary-dark text-sm leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-3 italic">
-                            {ayah.translation}
-                          </p>
+                          <div class="translation-text flex flex-col gap-1.5 border-t border-slate-100 dark:border-slate-800 pt-3">
+                            {ayah.latin && (
+                              <p class="text-primary-dark dark:text-primary text-sm sm:text-base font-medium leading-relaxed">
+                                {ayah.latin}
+                              </p>
+                            )}
+                            <p class="text-text-secondary dark:text-text-secondary-dark text-sm leading-relaxed">
+                              {ayah.translation}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </article>
@@ -364,18 +383,18 @@ export const QuranPage: FC<{
         const ayahsContainer = document.getElementById('ayahs-container');
         const statusText = document.getElementById('translation-status');
         
-        // Initialize from localStorage
-        const showTranslation = localStorage.getItem('showTranslation') === 'true';
-        if (showTranslation) {
-          ayahsContainer.classList.remove('hide-translation');
-          statusText.textContent = 'Sembunyikan Terjemahan';
+        // Latin & arti: tampil secara bawaan; pilihan sembunyikan diterapkan
+        // lebih awal oleh skrip di dalam #ayahs-container, di sini hanya label & tombol.
+        const labelLatinArti = (tersembunyi) =>
+          tersembunyi ? 'Tampilkan Latin & Arti' : 'Sembunyikan Latin & Arti';
+        if (toggleBtn && ayahsContainer && statusText) {
+          statusText.textContent = labelLatinArti(ayahsContainer.classList.contains('hide-translation'));
+          toggleBtn.addEventListener('click', () => {
+            const tersembunyi = ayahsContainer.classList.toggle('hide-translation');
+            try { localStorage.setItem('sembunyikanLatinArti', String(tersembunyi)); } catch (e) {}
+            statusText.textContent = labelLatinArti(tersembunyi);
+          });
         }
-
-        toggleBtn.addEventListener('click', () => {
-          const isHidden = ayahsContainer.classList.toggle('hide-translation');
-          localStorage.setItem('showTranslation', (!isHidden).toString());
-          statusText.textContent = isHidden ? 'Tampilkan Terjemahan' : 'Sembunyikan Terjemahan';
-        });
 
         // Sidebar mobile toggle
         const sidebarToggle = document.getElementById('sidebar-toggle');
