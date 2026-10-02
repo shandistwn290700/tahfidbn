@@ -36,17 +36,17 @@ export const PageShell: FC<{
   <Layout title={`${title} - ${getSiteName()}`}>
     <Header user={user} currentPath={currentPath} />
     <main
-      class={`flex-1 flex flex-col w-full px-4 sm:px-6 lg:px-8 py-8 ${
+      class={`flex-1 flex flex-col w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 ${
         wide ? "max-w-7xl" : "max-w-5xl"
       } mx-auto`}
     >
-      <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
-        <div class="flex flex-col gap-2">
-          <h1 class="text-text-main dark:text-text-main-dark text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">
+      <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6 sm:mb-8">
+        <div class="flex flex-col gap-1.5 sm:gap-2">
+          <h1 class="text-text-main dark:text-text-main-dark text-[1.75rem] sm:text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">
             {heading}
           </h1>
           {subheading && (
-            <p class="text-text-secondary dark:text-text-secondary-dark text-base leading-normal max-w-2xl">
+            <p class="text-text-secondary dark:text-text-secondary-dark text-sm sm:text-base leading-normal max-w-2xl">
               {subheading}
             </p>
           )}
@@ -102,23 +102,38 @@ export const StudentAvatar: FC<{
   );
 };
 
-export const StatCard: FC<{ icon: string; label: string; value: string; hint?: string }> = ({
-  icon,
-  label,
-  value,
-  hint,
-}) => (
-  <div class={`${CARD} p-5 flex items-start gap-4`}>
-    <div class="hanya-ikon size-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-      <span class="material-symbols-outlined">{icon}</span>
+/**
+ * Di HP kartu ini tampil dua kolom dan sempit, jadi ikon ditaruh di atas teks
+ * (bukan di sampingnya) supaya label, angka, dan keterangan tidak patah-patah.
+ * `unit` dicetak kecil di samping angka, mis. "600" + "ayat".
+ */
+export const StatCard: FC<{
+  icon: string;
+  label: string;
+  value: string;
+  unit?: string;
+  hint?: string;
+}> = ({ icon, label, value, unit, hint }) => (
+  <div class={`${CARD} p-4 sm:p-5 flex flex-col sm:flex-row items-start gap-3 sm:gap-4`}>
+    <div class="hanya-ikon size-9 sm:size-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-[20px] sm:text-[24px]">{icon}</span>
     </div>
     <div class="min-w-0">
-      <p class="text-text-secondary dark:text-text-secondary-dark text-xs font-bold uppercase tracking-wider">
+      <p class="text-text-secondary dark:text-text-secondary-dark text-[11px] sm:text-xs font-bold uppercase tracking-wider">
         {label}
       </p>
-      <p class="text-text-main dark:text-text-main-dark text-2xl font-black mt-0.5">{value}</p>
+      <p class="text-text-main dark:text-text-main-dark text-xl sm:text-2xl font-black leading-tight mt-0.5">
+        {value}
+        {unit && (
+          <span class="text-sm font-bold text-text-secondary dark:text-text-secondary-dark ml-1">
+            {unit}
+          </span>
+        )}
+      </p>
       {hint && (
-        <p class="text-text-secondary dark:text-text-secondary-dark text-xs mt-0.5">{hint}</p>
+        <p class="text-text-secondary dark:text-text-secondary-dark text-xs leading-snug mt-0.5">
+          {hint}
+        </p>
       )}
     </div>
   </div>
@@ -160,9 +175,21 @@ export const Collapsible: FC<{
   </details>
 );
 
-const TAB_BTN_ACTIVE = "border-primary text-primary";
-const TAB_BTN_INACTIVE =
+// Kelas aktif/tidak aktif ini juga ditukar oleh skrip tab di Layout.tsx —
+// ubah keduanya bersamaan.
+export const TAB_BTN_ACTIVE = "border-primary text-primary";
+export const TAB_BTN_INACTIVE =
   "border-transparent text-text-secondary dark:text-text-secondary-dark hover:text-text-main dark:hover:text-text-main-dark hover:border-border-light dark:hover:border-border-light-dark";
+
+/**
+ * Daftar tab. Di HP tampil sebagai kotak pilihan 2 kolom supaya semua tab
+ * terlihat tanpa digeser (sebelumnya tab ke-3 dst. tersembunyi di luar layar);
+ * mulai `sm` kembali menjadi tab bergaris bawah.
+ */
+export const TAB_LIST =
+  "grid grid-cols-2 gap-2 mb-6 sm:flex sm:items-center sm:gap-1 sm:border-b sm:border-border-light sm:dark:border-border-light-dark sm:overflow-x-auto";
+export const TAB_ITEM =
+  "flex items-center gap-2 px-3 py-2.5 sm:px-4 rounded-lg sm:rounded-none border-2 sm:border-0 sm:border-b-2 sm:-mb-px bg-surface dark:bg-surface-dark sm:bg-transparent sm:dark:bg-transparent ring-1 ring-inset ring-border-light dark:ring-border-light-dark sm:ring-0 text-left text-sm font-semibold leading-tight sm:whitespace-nowrap transition-colors";
 
 /**
  * Sekelompok tab yang menukar tampilan panel di bawahnya tanpa memuat ulang
@@ -176,16 +203,14 @@ export const TabbedPanels: FC<{
   children: Child;
 }> = ({ id, tabs, children }) => (
   <div id={id} data-tab-group class="mb-6">
-    <div class="flex items-center gap-1 mb-6 border-b border-border-light dark:border-border-light-dark overflow-x-auto">
+    <div class={TAB_LIST}>
       {tabs.map((tab, i) => (
         <button
           type="button"
           data-tab-btn={tab.id}
-          class={`inline-flex items-center gap-2 px-4 py-2.5 -mb-px border-b-2 text-sm font-semibold whitespace-nowrap transition-colors ${
-            i === 0 ? TAB_BTN_ACTIVE : TAB_BTN_INACTIVE
-          }`}
+          class={`${TAB_ITEM} ${i === 0 ? TAB_BTN_ACTIVE : TAB_BTN_INACTIVE}`}
         >
-          <span class="material-symbols-outlined text-[18px]">{tab.icon}</span>
+          <span class="material-symbols-outlined text-[18px] shrink-0">{tab.icon}</span>
           {tab.label}
         </button>
       ))}

@@ -37,7 +37,7 @@ export const PeriodReportPage: FC<{
   const buildJenisHref = (j: PeriodJenis) => `/leaderboard/periode?jenis=${j}`;
 
   const tabClass = (active: boolean) =>
-    `inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+    `inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors ${
       active
         ? "bg-primary text-white shadow-sm"
         : "bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark text-text-secondary dark:text-text-secondary-dark hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -52,13 +52,13 @@ export const PeriodReportPage: FC<{
       subheading="Rekap capaian hafalan Al-Qur'an siswa selama tengah semester atau satu semester penuh, berdasarkan tanggal semester yang diatur di Pengaturan."
       wide
     >
-      <div class="flex flex-wrap gap-2 mb-6">
+      <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap mb-6">
         <a href={buildJenisHref("tengah")} class={tabClass(jenis === "tengah")}>
-          <span class="material-symbols-outlined text-[18px]">event_upcoming</span>
+          <span class="hidden sm:inline-block material-symbols-outlined text-[18px]">event_upcoming</span>
           Tengah Semester
         </a>
         <a href={buildJenisHref("penuh")} class={tabClass(jenis === "penuh")}>
-          <span class="material-symbols-outlined text-[18px]">event_available</span>
+          <span class="hidden sm:inline-block material-symbols-outlined text-[18px]">event_available</span>
           Semester Penuh
         </a>
       </div>

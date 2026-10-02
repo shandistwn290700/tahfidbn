@@ -41,46 +41,51 @@ const Row: FC<{ member: RankedStudent; showClassRank: boolean }> = ({
     "bg-slate-100 dark:bg-slate-800 text-text-secondary dark:text-text-secondary-dark border-border-light dark:border-border-light-dark";
 
   return (
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 px-4 md:px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-      {/* Peringkat */}
-      <div class="flex items-center md:justify-center col-span-12 md:col-span-1">
-        <span
-          class={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold border shadow-sm ${rankClass}`}
-        >
-          {member.rank}
-        </span>
-        <span class="ml-2 md:hidden text-sm font-medium text-text-secondary dark:text-text-secondary-dark">
-          Peringkat sekolah
-        </span>
-      </div>
+    // Di HP: baris pertama peringkat + siswa, baris kedua Posisi | Capaian.
+    // Pembungkus peringkat + siswa memakai md:contents sehingga di layar lebar
+    // kedua anaknya kembali menjadi kolom tabel tersendiri.
+    <div class="grid grid-cols-2 md:grid-cols-12 gap-x-4 gap-y-3 md:gap-4 px-4 md:px-6 py-4 items-start md:items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+      <div class="col-span-2 flex items-center gap-3 md:contents">
+        {/* Peringkat */}
+        <div class="shrink-0 flex items-center md:justify-center md:col-span-1">
+          <span
+            class={`size-8 md:size-9 flex items-center justify-center rounded-full text-sm font-bold border shadow-sm ${rankClass}`}
+            title="Peringkat sekolah"
+          >
+            {member.rank}
+          </span>
+        </div>
 
-      {/* Siswa */}
-      <div class="col-span-12 md:col-span-4 flex items-center gap-3">
-        <StudentAvatar name={member.name} photoPath={member.photo_path} />
-        <div class="min-w-0">
-          <p class="text-text-main dark:text-text-main-dark text-sm font-bold truncate">
-            {member.name}
-          </p>
-          <p class="text-text-secondary dark:text-text-secondary-dark text-xs truncate">
-            {member.class_name || "Belum berkelas"}
-            {showClassRank && member.class_rank > 0 && (
-              <span class="text-primary font-semibold"> &bull; #{member.class_rank} di kelas</span>
-            )}
-            {member.nis ? ` • NIS ${member.nis}` : ""}
-          </p>
+        {/* Siswa */}
+        <div class="min-w-0 flex-1 md:col-span-4 flex items-center gap-3">
+          <StudentAvatar name={member.name} photoPath={member.photo_path} />
+          <div class="min-w-0">
+            <p class="text-text-main dark:text-text-main-dark text-sm font-bold truncate">
+              {member.name}
+            </p>
+            <p class="text-text-secondary dark:text-text-secondary-dark text-xs truncate">
+              {member.class_name || "Belum berkelas"}
+              {showClassRank && member.class_rank > 0 && (
+                <span class="text-primary font-semibold"> &bull; #{member.class_rank} di kelas</span>
+              )}
+              {member.nis ? ` • NIS ${member.nis}` : ""}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Posisi hafalan */}
-      <div class="col-span-6 md:col-span-3">
-        <div class="text-text-secondary dark:text-text-secondary-dark md:hidden mb-1 text-xs uppercase font-bold">
+      <div class="min-w-0 md:col-span-3">
+        <div class="text-text-secondary dark:text-text-secondary-dark md:hidden mb-1 text-[11px] uppercase font-bold tracking-wider">
           Posisi
         </div>
         {member.current_surah_number > 0 ? (
           <div class="flex flex-col gap-1.5">
             <div>
+              {/* nowrap per bagian: nama surah seperti "An-Naba" jangan patah di tanda hubung */}
               <p class="text-text-main dark:text-text-main-dark text-sm font-medium">
-                Juz {member.current_juz} &bull; {member.current_surah}
+                <span class="whitespace-nowrap">Juz {member.current_juz} &bull;</span>{" "}
+                <span class="whitespace-nowrap">{member.current_surah}</span>
               </p>
               <p class="text-text-secondary dark:text-text-secondary-dark text-[11px]">
                 Ayat {member.current_ayah}
@@ -95,7 +100,7 @@ const Row: FC<{ member: RankedStudent; showClassRank: boolean }> = ({
                   .map((s) => (
                     <span
                       title={`${s.name}: ayat ${s.last_ayah} dari ${s.total_ayahs}`}
-                      class="text-[9px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-text-secondary dark:text-text-secondary-dark rounded border border-border-light dark:border-border-light-dark font-bold"
+                      class="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-text-secondary dark:text-text-secondary-dark rounded border border-border-light dark:border-border-light-dark font-bold"
                     >
                       {s.name}
                     </span>
@@ -111,8 +116,8 @@ const Row: FC<{ member: RankedStudent; showClassRank: boolean }> = ({
       </div>
 
       {/* Capaian */}
-      <div class="col-span-6 md:col-span-3">
-        <div class="text-text-secondary dark:text-text-secondary-dark md:hidden mb-1 text-xs uppercase font-bold">
+      <div class="min-w-0 md:col-span-3">
+        <div class="text-text-secondary dark:text-text-secondary-dark md:hidden mb-1 text-[11px] uppercase font-bold tracking-wider">
           Capaian
         </div>
         <div class="flex items-center gap-2 mb-1.5">
@@ -142,13 +147,16 @@ const Row: FC<{ member: RankedStudent; showClassRank: boolean }> = ({
             {member.progress_percent}%
           </span>
         </div>
+        {/* Di HP tren cukup ditulis di bawah capaian, tanpa baris sendiri */}
+        {member.trend > 0 && (
+          <p class="md:hidden mt-1.5 text-primary text-[11px] font-bold whitespace-nowrap">
+            +{member.trend} ayat pekan ini
+          </p>
+        )}
       </div>
 
-      {/* Tren pekan ini */}
-      <div class="col-span-12 md:col-span-1 flex md:justify-end items-center gap-2">
-        <span class="md:hidden text-xs uppercase font-bold text-text-secondary dark:text-text-secondary-dark">
-          Pekan ini
-        </span>
+      {/* Tren pekan ini (layar lebar) */}
+      <div class="hidden md:flex md:col-span-1 md:justify-end items-center">
         <TrendBadge trend={member.trend} />
       </div>
     </div>

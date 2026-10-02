@@ -78,7 +78,7 @@ export const StudentsPage: FC<{
         id="tab-tambah-siswa"
         tabs={[
           { id: "satu", label: "Tambah Siswa", icon: "person_add" },
-          { id: "massal", label: "Tambah Banyak Sekaligus", icon: "upload_file" },
+          { id: "massal", label: "Tambah Banyak", icon: "upload_file" },
           { id: "excel", label: "Impor dari Excel", icon: "table_view" },
           { id: "foto", label: "Unggah Foto Massal", icon: "add_a_photo" },
         ]}
@@ -273,16 +273,27 @@ export const StudentsPage: FC<{
 
       {/* Penyaring */}
       <form method="GET" action="/administrasi/siswa" class={`${CARD} p-3 mb-6 flex flex-col sm:flex-row gap-3`}>
-        <div class="relative flex-1">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-[20px]">
-            search
-          </span>
-          <input
-            name="cari"
-            value={cari}
-            class={`${INPUT} pl-10`}
-            placeholder="Cari nama atau NIS siswa..."
-          />
+        <div class="flex gap-2 flex-1">
+          <div class="relative flex-1 min-w-0">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-[20px]">
+              search
+            </span>
+            <input
+              name="cari"
+              value={cari}
+              class={`${INPUT} pl-10`}
+              placeholder="Cari nama atau NIS siswa..."
+            />
+          </div>
+          {/* HP: tombol cari ringkas di samping kolom, hemat satu baris */}
+          <button
+            type="submit"
+            class={`${BTN_PRIMARY} ikon-berlabel sm:hidden px-3`}
+            data-label="Cari"
+            aria-label="Cari"
+          >
+            <span class="material-symbols-outlined text-[20px]">search</span>
+          </button>
         </div>
         <select name="kelas" class={`${INPUT} sm:w-56`} onchange="this.form.submit()">
           <option value="" selected={kelasFilter === ""}>
@@ -297,7 +308,7 @@ export const StudentsPage: FC<{
             </option>
           ))}
         </select>
-        <button type="submit" class={BTN_PRIMARY}>
+        <button type="submit" class={`${BTN_PRIMARY} hidden sm:inline-flex`}>
           <span class="material-symbols-outlined text-[20px]">filter_alt</span>
           Saring
         </button>

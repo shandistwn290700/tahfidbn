@@ -50,10 +50,10 @@ export const QuranPage: FC<{
   return (
     <Layout title={`Al-Qur'an - ${getSiteName()}`}>
       <Header user={user} currentPath="/quran" />
-      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 pt-8 pb-24 sm:pb-8 max-w-7xl mx-auto">
-        <div class="w-full flex flex-col gap-2 mb-6">
-          <h1 class="text-text-main dark:text-text-main-dark text-3xl font-black leading-tight tracking-[-0.033em]">Al-Qur'an</h1>
-          <p class="text-text-secondary dark:text-text-secondary-dark text-base">
+      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-24 sm:pb-8 max-w-7xl mx-auto">
+        <div class="w-full flex flex-col gap-1.5 sm:gap-2 mb-6">
+          <h1 class="text-text-main dark:text-text-main-dark text-[1.75rem] sm:text-3xl font-black leading-tight tracking-[-0.033em]">Al-Qur'an</h1>
+          <p class="text-text-secondary dark:text-text-secondary-dark text-sm sm:text-base">
             Baca langsung di aplikasi dan simpan satu penanda terakhir dibaca.
           </p>
         </div>
@@ -160,10 +160,10 @@ export const QuranPage: FC<{
             </div>
           </aside>
 
-          <section class="bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-xl p-6 shadow-sm flex flex-col">
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-border-light dark:border-border-light-dark">
+          <section class="bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-xl p-4 sm:p-6 shadow-sm flex flex-col">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-border-light dark:border-border-light-dark">
               <div>
-                <h2 class="text-text-main dark:text-text-main-dark text-2xl font-black tracking-tight">
+                <h2 class="text-text-main dark:text-text-main-dark text-xl sm:text-2xl font-black tracking-tight">
                   {selectedSurah.number}. {selectedSurah.name}
                 </h2>
                 <p class="text-text-secondary dark:text-text-secondary-dark text-sm flex items-center gap-2">
@@ -172,7 +172,7 @@ export const QuranPage: FC<{
                   <span>{selectedSurah.totalAyahs} ayat</span>
                 </p>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
                   id="toggle-translation"
                   class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-text-secondary dark:text-text-secondary-dark rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-border-light dark:border-border-light-dark"
@@ -282,45 +282,56 @@ export const QuranPage: FC<{
                 })}
 
                 {/* Pagination controls */}
-                <div class="mt-8 pt-4 sm:pt-8 border-t border-border-light dark:border-border-light-dark sticky bottom-0 sm:static bg-surface/95 dark:bg-surface-dark/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none -mx-6 px-6 sm:px-8 py-4 sm:py-8 z-30">
-                  <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-y-4 gap-x-2">
-                    <div class="w-[48%] sm:w-auto sm:flex-1 flex justify-start order-2 sm:order-1">
+                {/*
+                  Di HP bilah ini menempel di bawah layar saat membaca, jadi dibuat
+                  satu baris: [‹] Halaman 1 dari 2 [›]. Label tombol baru tampil
+                  mulai sm. Panah HP memakai karakter biasa, bukan font ikon, supaya
+                  tombol tidak kosong bila font ikon gagal dimuat.
+                */}
+                <div class="mt-6 sm:mt-8 border-t border-border-light dark:border-border-light-dark sticky bottom-0 sm:static bg-surface/95 dark:bg-surface-dark/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none -mx-4 sm:-mx-6 px-4 sm:px-8 py-3 sm:py-8 z-30">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="sm:flex-1 flex justify-start">
                       <a
                         href={`/quran?surah=${selectedSurah.number}&page=${currentPage - 1}`}
-                        class={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                        aria-label="Halaman sebelumnya"
+                        class={`inline-flex items-center justify-center gap-1.5 h-10 w-12 sm:w-auto sm:px-6 rounded-lg text-sm font-bold transition-all ${
                           currentPage > 1
                             ? "bg-white dark:bg-slate-800 text-text-main dark:text-text-main-dark border border-border-light dark:border-border-light-dark hover:border-primary hover:text-primary shadow-sm"
                             : "bg-slate-50 dark:bg-slate-900/50 text-slate-400 dark:text-slate-600 border border-transparent cursor-not-allowed"
                         }`}
                         {...(currentPage <= 1 ? { onClick: (e: any) => e.preventDefault() } : {})}
                       >
-                        <span class="material-symbols-outlined text-lg">chevron_left</span>
-                        Sebelumnya
+                        <span class="sm:hidden text-xl leading-none" aria-hidden="true">‹</span>
+                        <span class="hidden sm:inline-block material-symbols-outlined text-lg">chevron_left</span>
+                        <span class="hidden sm:inline">Sebelumnya</span>
                       </a>
                     </div>
-                    
-                    <div class="w-full sm:w-auto sm:flex-1 flex flex-col items-center justify-center gap-1.5 order-1 sm:order-2">
-                      <div class="flex items-center gap-1 px-5 py-2 bg-slate-50 dark:bg-slate-900/50 border border-border-light dark:border-border-light-dark rounded-lg shadow-sm">
+
+                    <div class="flex-1 flex flex-col items-center justify-center gap-1.5">
+                      <div class="flex items-baseline gap-1 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-border-light dark:border-border-light-dark rounded-lg shadow-sm">
+                        <span class="text-xs text-text-secondary dark:text-text-secondary-dark">Halaman</span>
                         <span class="text-sm font-black text-text-main dark:text-text-main-dark">{currentPage}</span>
-                        <span class="text-xs text-text-secondary dark:text-text-secondary-dark">of {totalPages}</span>
+                        <span class="text-xs text-text-secondary dark:text-text-secondary-dark">dari {totalPages}</span>
                       </div>
                       <p class="hidden sm:block text-[11px] text-text-secondary dark:text-text-secondary-dark font-medium italic">
                         Menampilkan {ayahs.length} ayat per halaman
                       </p>
                     </div>
 
-                    <div class="w-[48%] sm:w-auto sm:flex-1 flex justify-end order-3">
+                    <div class="sm:flex-1 flex justify-end">
                       <a
                         href={`/quran?surah=${selectedSurah.number}&page=${currentPage + 1}`}
-                        class={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                        aria-label="Halaman berikutnya"
+                        class={`inline-flex items-center justify-center gap-1.5 h-10 w-12 sm:w-auto sm:px-6 rounded-lg text-sm font-bold transition-all ${
                           currentPage < totalPages
                             ? "bg-white dark:bg-slate-800 text-text-main dark:text-text-main-dark border border-border-light dark:border-border-light-dark hover:border-primary hover:text-primary shadow-sm"
                             : "bg-slate-50 dark:bg-slate-900/50 text-slate-400 dark:text-slate-600 border border-transparent cursor-not-allowed"
                         }`}
                         {...(currentPage >= totalPages ? { onClick: (e: any) => e.preventDefault() } : {})}
                       >
-                        Berikutnya
-                        <span class="material-symbols-outlined text-lg">chevron_right</span>
+                        <span class="hidden sm:inline">Berikutnya</span>
+                        <span class="hidden sm:inline-block material-symbols-outlined text-lg">chevron_right</span>
+                        <span class="sm:hidden text-xl leading-none" aria-hidden="true">›</span>
                       </a>
                     </div>
                   </div>

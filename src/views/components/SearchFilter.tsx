@@ -43,17 +43,28 @@ export const SearchFilter: FC<{
       {hiddenFields.map((field) => (
         <input type="hidden" name={field.name} value={field.value} />
       ))}
-      <div class="relative flex-1 lg:min-w-[280px]">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary dark:text-text-secondary-dark material-symbols-outlined text-[20px]">
-          search
-        </span>
-        <input
-          class={`${INPUT} pl-10`}
-          placeholder="Cari nama atau NIS siswa..."
-          type="text"
-          name="cari"
-          value={search}
-        />
+      <div class="flex gap-2 flex-1 lg:min-w-[280px]">
+        <div class="relative flex-1 min-w-0">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary dark:text-text-secondary-dark material-symbols-outlined text-[20px]">
+            search
+          </span>
+          <input
+            class={`${INPUT} pl-10`}
+            placeholder="Cari nama atau NIS siswa..."
+            type="text"
+            name="cari"
+            value={search}
+          />
+        </div>
+        {/* HP: tombol cari ringkas di samping kolom, hemat satu baris */}
+        <button
+          type="submit"
+          class={`${BTN_PRIMARY} ikon-berlabel sm:hidden px-3`}
+          data-label="Cari"
+          aria-label="Cari"
+        >
+          <span class="material-symbols-outlined text-[20px]">search</span>
+        </button>
       </div>
 
       <div class="flex flex-col sm:flex-row items-stretch gap-3">
@@ -76,7 +87,7 @@ export const SearchFilter: FC<{
           ))}
         </select>
 
-        <button type="submit" class={BTN_PRIMARY}>
+        <button type="submit" class={`${BTN_PRIMARY} hidden sm:inline-flex`}>
           <span class="material-symbols-outlined text-[18px]">filter_alt</span>
           Terapkan
         </button>

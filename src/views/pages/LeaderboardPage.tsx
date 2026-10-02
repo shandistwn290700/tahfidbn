@@ -55,7 +55,7 @@ export const LeaderboardPage: FC<{
       }
       wide
     >
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         <StatCard icon="groups" label="Siswa" value={String(stats.totalStudents)} />
         <StatCard icon="school" label="Kelas" value={String(stats.totalClasses)} />
         <StatCard
@@ -67,8 +67,9 @@ export const LeaderboardPage: FC<{
         <StatCard
           icon="trending_up"
           label="Pekan Ini"
-          value={`${stats.weeklyAyahs} ayat`}
-          hint="tambahan 7 hari terakhir"
+          value={stats.weeklyAyahs.toLocaleString("id-ID")}
+          unit="ayat"
+          hint="7 hari terakhir"
         />
       </div>
 

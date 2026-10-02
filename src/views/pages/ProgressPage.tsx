@@ -117,25 +117,25 @@ export const ProgressPage: FC<{
       </div>
 
       {selectedClass && rows.length > 0 && (
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-          <div class={`${CARD} px-4 py-3`}>
-            <p class="text-text-secondary dark:text-text-secondary-dark text-xs font-bold uppercase tracking-wider">
+        <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+          <div class={`${CARD} px-3 sm:px-4 py-3`}>
+            <p class="text-text-secondary dark:text-text-secondary-dark text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider">
               Siswa
             </p>
             <p class="text-text-main dark:text-text-main-dark text-xl font-black mt-0.5">
               {rows.length}
             </p>
           </div>
-          <div class={`${CARD} px-4 py-3`}>
-            <p class="text-text-secondary dark:text-text-secondary-dark text-xs font-bold uppercase tracking-wider">
+          <div class={`${CARD} px-3 sm:px-4 py-3`}>
+            <p class="text-text-secondary dark:text-text-secondary-dark text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider">
               Total Juz
             </p>
             <p class="text-text-main dark:text-text-main-dark text-xl font-black mt-0.5">
               {totalJuzKelas}
             </p>
           </div>
-          <div class={`${CARD} px-4 py-3 col-span-2 sm:col-span-1`}>
-            <p class="text-text-secondary dark:text-text-secondary-dark text-xs font-bold uppercase tracking-wider">
+          <div class={`${CARD} px-3 sm:px-4 py-3`}>
+            <p class="text-text-secondary dark:text-text-secondary-dark text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider">
               Sudah Setor
             </p>
             <p class="text-text-main dark:text-text-main-dark text-xl font-black mt-0.5">
@@ -164,16 +164,19 @@ export const ProgressPage: FC<{
               </button>
             </form>
           ) : (
-            <p class="text-text-secondary dark:text-text-secondary-dark text-sm flex items-center gap-2">
-              <span class="material-symbols-outlined text-[20px]">info</span>
-              Laporan Pekanan dibuat lewat Canva, yang belum terhubung.
-              {isAdmin ? (
-                <a href="/administrasi/pengaturan/canva" class="text-primary font-bold hover:underline">
-                  Atur sekarang
-                </a>
-              ) : (
-                " Hubungi administrator."
-              )}
+            <p class="text-text-secondary dark:text-text-secondary-dark text-sm flex items-start gap-2">
+              <span class="material-symbols-outlined text-[20px] shrink-0">info</span>
+              {/* Satu span supaya tautan ikut mengalir dalam kalimat, bukan kolom sendiri */}
+              <span>
+                Laporan Pekanan dibuat lewat Canva, yang belum terhubung.{" "}
+                {isAdmin ? (
+                  <a href="/administrasi/pengaturan/canva" class="text-primary font-bold hover:underline whitespace-nowrap">
+                    Atur sekarang
+                  </a>
+                ) : (
+                  "Hubungi administrator."
+                )}
+              </span>
             </p>
           )}
           <a href="/laporan/antrean" class={BTN_GHOST}>
