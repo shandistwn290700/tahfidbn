@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { serveStatic } from "hono/bun";
+import { secureHeaders } from "hono/secure-headers";
 import { initializeDatabase } from "./db/schema.ts";
 import { getSessionUser, cleanExpiredSessions, ensureDefaultAdmin } from "./lib/session.ts";
 import { authRoutes } from "./routes/auth.ts";
@@ -40,6 +41,44 @@ await ensureDefaultAdmin();
 startReportWorker();
 
 const app = new Hono<Env>();
+
+// Header keamanan dipasang paling awal agar berlaku untuk seluruh respons
+// (termasuk berkas statis dan halaman galat). CSP sengaja mengizinkan skrip &
+// gaya inline karena tampilan memakai beberapa <script>/<style> inline yang
+// datanya selalu lewat textContent/escape JSX (bukan sumber XSS). Sumber luar
+// satu-satunya adalah Google Fonts. Pengetatan ke CSP berbasis nonce dapat
+// menyusul sebagai langkah hardening berikutnya.
+const isProd = process.env.NODE_ENV === "production";
+app.use(
+  "*",
+  secureHeaders({
+    contentSecurityPolicy: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      manifestSrc: ["'self'"],
+      workerSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+    // HSTS hanya bermakna di produksi (di balik HTTPS/nginx). 180 hari.
+    strictTransportSecurity: isProd
+      ? "max-age=15552000; includeSubDomains"
+      : false,
+    xFrameOptions: "DENY",
+    xContentTypeOptions: "nosniff",
+    referrerPolicy: "strict-origin-when-cross-origin",
+    crossOriginOpenerPolicy: "same-origin",
+    crossOriginResourcePolicy: "same-origin",
+    // COEP dimatikan: Google Fonts tidak mengirim header CORP yang dibutuhkan.
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // Berkas statis (Tailwind hasil build dan SweetAlert2) dilayani dari server ini
 // sendiri agar aplikasi tetap utuh tanpa koneksi internet.

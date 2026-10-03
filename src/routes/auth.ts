@@ -82,7 +82,12 @@ auth.post("/login", async (c) => {
   setCookie(c, "session", sessionId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "Lax",
+    // Strict: cookie sesi tidak ikut terkirim pada navigasi lintas-situs,
+    // menutup celah CSRF sebagai pertahanan berlapis (login diproses lewat
+    // form satu-situs, jadi tidak ada dampak UX). Konsekuensi kecil: membuka
+    // aplikasi lewat tautan dari situs/email lain akan tampil belum masuk
+    // sampai navigasi berikutnya di dalam aplikasi.
+    sameSite: "Strict",
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
   });

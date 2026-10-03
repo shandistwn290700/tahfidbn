@@ -89,7 +89,7 @@ export const SettingsPage: FC<{
               id="favicon-file"
               name="favicon"
               type="file"
-              accept="image/png,image/jpeg,image/x-icon,image/svg+xml,.ico"
+              accept="image/png,image/jpeg,image/x-icon,.ico"
               class={`${INPUT} file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer`}
               required
             />

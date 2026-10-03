@@ -26,12 +26,15 @@ const SEMESTER_END_KEY = "semester_end_date";
 const ALLOWED_REPORT_LOGO_TYPES = ["image/png", "image/jpeg"];
 const MAX_REPORT_LOGO_BYTES = 2 * 1024 * 1024; // 2MB — logo cetak butuh resolusi lebih tinggi dari favicon
 
+// SVG sengaja TIDAK diizinkan: berkas SVG bisa memuat <script>. Favicon
+// disimpan sebagai data URL dan—meski saat ini hanya dipasang di <link rel=icon>
+// sehingga skrip tidak jalan—membatasi ke format raster/ICO menutup risiko bila
+// kelak data URL itu dipakai di konteks lain.
 const ALLOWED_FAVICON_TYPES = [
   "image/png",
   "image/jpeg",
   "image/x-icon",
   "image/vnd.microsoft.icon",
-  "image/svg+xml",
 ];
 const MAX_FAVICON_BYTES = 512 * 1024; // 512KB — cukup lega untuk sebuah ikon
 
@@ -88,7 +91,7 @@ export async function setFaviconFromFile(file: File): Promise<void> {
     throw new PublicError("Pilih berkas favicon terlebih dahulu.");
   }
   if (!ALLOWED_FAVICON_TYPES.includes(file.type)) {
-    throw new PublicError("Format favicon harus PNG, JPG, ICO, atau SVG.");
+    throw new PublicError("Format favicon harus PNG, JPG, atau ICO.");
   }
   if (file.size > MAX_FAVICON_BYTES) {
     throw new PublicError("Ukuran favicon maksimal 512KB.");
