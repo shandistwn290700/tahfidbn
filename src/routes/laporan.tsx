@@ -86,7 +86,7 @@ laporan.post("/siswa/:id/antrean", async (c) => {
     "success",
     result.existing
       ? "Laporan siswa ini sudah ada di antrean — tidak dimasukkan dua kali."
-      : "Laporan masuk antrean. Halaman ini diperbarui otomatis; unduh PDF-nya setelah selesai."
+      : "Laporan masuk antrean. Halaman ini diperbarui otomatis; unduh gambarnya setelah selesai."
   );
 });
 

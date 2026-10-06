@@ -395,12 +395,17 @@ export async function uploadAsset(fileName: string, data: Uint8Array): Promise<s
   throw new PublicError("Batas waktu menunggu unggahan aset ke Canva terlampaui.");
 }
 
-/** Mengekspor desain hasil autofill sebagai PDF, mengembalikan URL unduhan sementara. */
-export async function exportDesignAsPdf(designId: string): Promise<string> {
+/**
+ * Mengekspor halaman pertama desain hasil autofill sebagai JPG, mengembalikan URL
+ * unduhan sementara. Gambar (bukan PDF) supaya orang tua bisa langsung meneruskan
+ * laporan ke status WhatsApp / Stories IG & Facebook. Ekspor gambar menghasilkan satu
+ * berkas per halaman, jadi template Canva sebaiknya satu halaman berukuran 1080×1920.
+ */
+export async function exportDesignAsJpg(designId: string): Promise<string> {
   const response = await canvaFetch("/exports", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ design_id: designId, format: { type: "pdf" } }),
+    body: JSON.stringify({ design_id: designId, format: { type: "jpg", quality: 90, pages: [1] } }),
   });
 
   if (!response.ok) {
@@ -441,8 +446,8 @@ export interface CanvaReportStudent {
 }
 
 /**
- * Menghasilkan Laporan Pekanan lewat Autofill Brand Template Canva — satu-satunya
- * jalur Laporan Pekanan (PDF bawaan pdfkit kini hanya untuk Laporan Periode).
+ * Menghasilkan Laporan Pekanan (gambar JPG) lewat Autofill Brand Template Canva —
+ * satu-satunya jalur Laporan Pekanan (PDF bawaan pdfkit kini hanya untuk Laporan Periode).
  * Jangan dipanggil langsung dari rute: lewati antrean di report-queue.ts supaya
  * batas kecepatan API Canva terjaga. Field yang diisi: nama, pekan, ayat, ayat_sebelum,
  * ayat_total, foto (opsional). `ayat_sebelum` = total hafalan saat ini
@@ -498,11 +503,11 @@ export async function generateWeeklyReportViaCanva(
     throw new Error(result.error || "Gagal mengisi Brand Template Canva (autofill tidak selesai).");
   }
 
-  const downloadUrl = await exportDesignAsPdf(result.designId);
-  const pdfResponse = await fetch(downloadUrl);
-  if (!pdfResponse.ok) {
-    throw new Error(`Gagal mengunduh hasil ekspor Canva (${pdfResponse.status}).`);
+  const downloadUrl = await exportDesignAsJpg(result.designId);
+  const imageResponse = await fetch(downloadUrl);
+  if (!imageResponse.ok) {
+    throw new Error(`Gagal mengunduh hasil ekspor Canva (${imageResponse.status}).`);
   }
 
-  return Buffer.from(await pdfResponse.arrayBuffer());
+  return Buffer.from(await imageResponse.arrayBuffer());
 }

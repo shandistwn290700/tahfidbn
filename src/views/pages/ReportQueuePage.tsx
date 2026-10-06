@@ -95,7 +95,7 @@ const JobCard: FC<{
           {job.done_count > 0 && (
             <a href={`/laporan/antrean/${job.id}/unduh`} class={BTN_PRIMARY} data-no-loader>
               <span class="material-symbols-outlined text-[20px]">download</span>
-              {job.kind === "kelas" ? (active ? "Unduh yang sudah jadi" : "Unduh ZIP") : "Unduh PDF"}
+              {job.kind === "kelas" ? (active ? "Unduh yang sudah jadi" : "Unduh ZIP") : "Unduh Gambar"}
             </a>
           )}
           {!active && job.failed_count > 0 && (

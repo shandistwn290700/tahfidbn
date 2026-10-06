@@ -149,10 +149,15 @@ export const CanvaSettingsPage: FC<{
             <span class="material-symbols-outlined text-primary">dashboard_customize</span>
             Brand Template
           </h2>
-          <p class="text-text-secondary dark:text-text-secondary-dark text-sm mb-5">
+          <p class="text-text-secondary dark:text-text-secondary-dark text-sm mb-2">
             ID Brand Template Canva yang dipakai untuk Autofill laporan. Buat template di Canva
             (Brand Kit &rsaquo; Brand Templates) terlebih dahulu, tandai elemen yang ingin diisi
             otomatis sebagai autofill field, lalu tempel ID-nya di sini.
+          </p>
+          <p class="text-text-secondary dark:text-text-secondary-dark text-sm mb-5">
+            Laporan diekspor sebagai gambar JPG (hanya halaman pertama) supaya orang tua bisa
+            langsung membagikannya ke status WhatsApp atau Stories. Agar pas, buat template
+            <b> satu halaman berukuran 1080 &times; 1920 piksel</b>.
           </p>
 
           <form

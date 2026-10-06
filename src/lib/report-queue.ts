@@ -82,6 +82,16 @@ function jobDir(jobId: number): string {
   return join(REPORTS_DIR, `job-${jobId}`);
 }
 
+/**
+ * Laporan Pekanan kini berupa JPG; job yang selesai sebelum peralihan masih menyimpan
+ * PDF selama KEEP_DAYS hari. Ekstensi dibaca dari berkas yang tersimpan.
+ */
+function storedFileType(fileName: string): { ext: string; contentType: string } {
+  return fileName.endsWith(".pdf")
+    ? { ext: "pdf", contentType: "application/pdf" }
+    : { ext: "jpg", contentType: "image/jpeg" };
+}
+
 // ---------------------------------------------------------------------------
 // Memasukkan permintaan ke antrean
 // ---------------------------------------------------------------------------
@@ -249,8 +259,8 @@ export function retryFailedItems(jobId: number): number {
 }
 
 /**
- * Berkas unduhan sebuah job: PDF tunggal untuk job satu siswa, ZIP untuk job sekelas.
- * ZIP disusun saat diunduh dari PDF yang sudah tersimpan (cepat, tanpa memanggil Canva).
+ * Berkas unduhan sebuah job: JPG tunggal untuk job satu siswa, ZIP untuk job sekelas.
+ * ZIP disusun saat diunduh dari gambar yang sudah tersimpan (cepat, tanpa memanggil Canva).
  */
 export async function buildReportDownload(
   job: ReportJob
@@ -275,9 +285,10 @@ export async function buildReportDownload(
   const pekan = job.week_number ? `_Pekan-${job.week_number}` : "";
 
   if (job.kind === "siswa") {
+    const { ext, contentType } = storedFileType(ready[0]!.file_name!);
     return {
-      fileName: `Laporan_Pekanan_${safeFilePart(ready[0]!.student_name)}${pekan}.pdf`,
-      contentType: "application/pdf",
+      fileName: `Laporan_Pekanan_${safeFilePart(ready[0]!.student_name)}${pekan}.${ext}`,
+      contentType,
       data: readFileSync(join(jobDir(job.id), ready[0]!.file_name!)),
     };
   }
@@ -285,9 +296,10 @@ export async function buildReportDownload(
   const zip = new JSZip();
   const usedNames = new Set<string>();
   for (const item of ready) {
+    const { ext } = storedFileType(item.file_name!);
     // Dua siswa sekelas bisa bernama sama — diberi akhiran supaya tidak saling timpa di ZIP.
-    let name = `${safeFilePart(item.student_name)}.pdf`;
-    for (let n = 2; usedNames.has(name); n++) name = `${safeFilePart(item.student_name)}_${n}.pdf`;
+    let name = `${safeFilePart(item.student_name)}.${ext}`;
+    for (let n = 2; usedNames.has(name); n++) name = `${safeFilePart(item.student_name)}_${n}.${ext}`;
     usedNames.add(name);
     zip.file(name, readFileSync(join(jobDir(job.id), item.file_name!)));
   }
@@ -393,15 +405,15 @@ async function processItem(item: QueueItem): Promise<number> {
   }
 
   try {
-    const pdf = await generateWeeklyReportViaCanva(
+    const image = await generateWeeklyReportViaCanva(
       student,
       item.week_number,
       getWeeklyAyahMemorized(student.id)
     );
     const dir = jobDir(item.job_id);
     mkdirSync(dir, { recursive: true });
-    const fileName = `item-${item.id}.pdf`;
-    writeFileSync(join(dir, fileName), pdf);
+    const fileName = `item-${item.id}.jpg`;
+    writeFileSync(join(dir, fileName), image);
     markItem(item.id, "done", { fileName });
     finalizeJobIfComplete(item.job_id);
     return 0;
@@ -473,7 +485,7 @@ export function kickReportWorker(): void {
   if (started && !busy) schedule(0);
 }
 
-/** Menghapus job yang sudah selesai lebih dari KEEP_DAYS hari, beserta berkas PDF-nya. */
+/** Menghapus job yang sudah selesai lebih dari KEEP_DAYS hari, beserta berkas laporannya. */
 function cleanupOldJobs(): void {
   const old = db
     .prepare(

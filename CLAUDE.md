@@ -162,6 +162,10 @@ di `src/lib/http.ts`.
 - Refresh token Canva **sekali pakai**. `getValidAccessToken()` membagi satu proses refresh
   ke semua pemanggil; jangan dihapus. Refresh yang ditolak (400/401) melepas token dan
   melempar `CanvaAuthError`, sehingga antrean berhenti tanpa menandai siswa gagal.
+- Hasil Laporan Pekanan berupa **JPG** (halaman pertama saja, `exportDesignAsJpg()`), bukan
+  PDF, supaya orang tua bisa langsung membagikannya ke status WhatsApp / Stories. Template
+  Canva sebaiknya satu halaman 1080×1920. Tipe unduhan dibaca dari ekstensi berkas tersimpan
+  (`storedFileType()`), jadi job PDF lama tetap terunduh sebagai PDF.
 - Redirect URI OAuth: `CANVA_REDIRECT_URI`, atau diturunkan dari `APP_URL` bila kosong.
 - **Laporan Periode** tetap PDF bawaan (`generateWeeklyReportPdf()` dengan `heading`/
   `periodLabel`); logo, nama sekolah, dan kontak di Pengaturan › Laporan & Semester hanya
