@@ -156,9 +156,10 @@ export async function ensureDefaultAdmin(): Promise<void> {
     return;
   }
 
-  await createUser({ username, password, name: "Administrator", role: "admin" });
+  const created = await createUser({ username, password, name: "Administrator", role: "admin" });
+  db.prepare("UPDATE users SET is_superadmin = 1 WHERE id = ?").run(created.id);
   audit(null, "akun.admin_awal_dibuat", {
     username,
-    message: `Akun admin awal "${username}" dibuat. Ganti passwordnya setelah login pertama.`,
+    message: `Akun admin awal "${username}" dibuat sebagai superadmin. Ganti passwordnya setelah login pertama.`,
   });
 }

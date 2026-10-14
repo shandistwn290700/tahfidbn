@@ -274,9 +274,36 @@ function migrateStudentPhoto() {
   log.info("migrasi", { message: 'Kolom "photo_path" ditambahkan ke tabel students.' });
 }
 
+/**
+ * Superadmin = admin yang akunnya terlindungi dari admin lain. Saat kolomnya pertama kali
+ * ditambahkan, akun admin pertama (ADMIN_USERNAME) dijadikan superadmin. Tidak ada tombol
+ * untuk mengangkat superadmin dari tampilan, supaya admin biasa tidak bisa mengangkat diri.
+ */
+function migrateSuperadmin() {
+  if (!tableExists("users")) return;
+  if (columnNames("users").includes("is_superadmin")) return;
+
+  backupDatabase("pra-superadmin");
+  db.exec("ALTER TABLE users ADD COLUMN is_superadmin INTEGER NOT NULL DEFAULT 0");
+
+  const username = (process.env.ADMIN_USERNAME || "admin").trim().toLowerCase();
+  const marked = db
+    .prepare("UPDATE users SET is_superadmin = 1 WHERE username = ? AND role = 'admin'")
+    .run(username).changes;
+
+  if (marked > 0) {
+    log.info("migrasi", { message: `Kolom "is_superadmin" ditambahkan; akun "${username}" kini superadmin.` });
+  } else {
+    log.warn("migrasi", {
+      message: `Kolom "is_superadmin" ditambahkan, tetapi tidak ada akun admin "${username}" — belum ada superadmin.`,
+    });
+  }
+}
+
 export function runMigrations() {
   migrateProgressToStudents();
   migrateUserRoles();
+  migrateSuperadmin();
   migrateStudentPhoto();
   migrateClassTeachersSubject();
   migrateRemoveTilawati();

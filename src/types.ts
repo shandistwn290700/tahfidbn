@@ -8,6 +8,11 @@ export interface User {
   name: string;
   avatar_url: string | null;
   role: UserRole;
+  /**
+   * 1 = superadmin: hak aksesnya sama dengan admin (role tetap "admin"), tetapi akunnya
+   * tidak bisa dihapus, diturunkan, atau direset password-nya oleh admin lain.
+   */
+  is_superadmin: number;
   created_at: string;
   updated_at: string;
 }

@@ -182,7 +182,11 @@ export const UsersPage: FC<{
                 .join(", ");
               const ringkasanKelas = namaKelasAmpuan ? `Tahfid: ${namaKelasAmpuan}` : "";
               const diriSendiri = u.id === user.id;
-              const adminTerakhir = u.role === "admin" && adminCount <= 1;
+              const superadmin = Boolean(u.is_superadmin);
+              // Akun superadmin milik orang lain: tampil, tetapi tanpa formulir apa pun.
+              const terkunci = superadmin && !diriSendiri;
+              // Peran tidak bisa diturunkan: admin terakhir, atau superadmin.
+              const peranTerkunci = superadmin || (u.role === "admin" && adminCount <= 1);
 
               return (
                 <details class="group">
@@ -199,6 +203,11 @@ export const UsersPage: FC<{
                     <div class="min-w-0 flex-1">
                       <p class="text-text-main dark:text-text-main-dark text-sm font-bold flex items-center gap-2">
                         {u.name}
+                        {superadmin && (
+                          <span class="text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded uppercase tracking-wider font-black">
+                            Superadmin
+                          </span>
+                        )}
                         {diriSendiri && (
                           <span class="text-[10px] bg-primary text-white px-1.5 py-0.5 rounded uppercase tracking-wider font-black">
                             Anda
@@ -206,17 +215,26 @@ export const UsersPage: FC<{
                         )}
                       </p>
                       <p class="text-text-secondary dark:text-text-secondary-dark text-xs mt-0.5 truncate">
-                        {ROLE_LABEL[u.role]} &bull; {u.username}
+                        {superadmin ? "Superadmin" : ROLE_LABEL[u.role]} &bull; {u.username}
                         {u.role === "guru" &&
                           (ringkasanKelas ? ` • ${ringkasanKelas}` : " • belum ditugaskan")}
                       </p>
                     </div>
-                    <ToggleHint closed="Ubah" open="Tutup" />
+                    <ToggleHint closed={terkunci ? "Info" : "Ubah"} open="Tutup" />
                     <span class="material-symbols-outlined text-text-secondary text-[20px] group-open:rotate-180 transition-transform shrink-0">
                       expand_more
                     </span>
                   </summary>
 
+                  {terkunci ? (
+                    <div class="px-5 pb-5 pt-2 bg-slate-50/50 dark:bg-slate-800/20">
+                      <p class="flex items-start gap-2 text-text-secondary dark:text-text-secondary-dark text-sm">
+                        <span class="material-symbols-outlined text-[20px] text-amber-500 shrink-0">lock</span>
+                        Akun superadmin hanya bisa diubah oleh pemiliknya sendiri. Admin lain tidak
+                        dapat mengubah data, mereset password, atau menghapus akun ini.
+                      </p>
+                    </div>
+                  ) : (
                   <div class="px-5 pb-5 pt-2 bg-slate-50/50 dark:bg-slate-800/20">
                     <form
                       method="POST"
@@ -256,7 +274,7 @@ export const UsersPage: FC<{
                             id={`peran-u-${u.id}`}
                             name="role"
                             class={INPUT}
-                            disabled={adminTerakhir}
+                            disabled={peranTerkunci}
                           >
                             <option value="guru" selected={u.role === "guru"}>
                               Guru
@@ -265,15 +283,17 @@ export const UsersPage: FC<{
                               Administrator
                             </option>
                           </select>
-                          {adminTerakhir && (
+                          {peranTerkunci && (
                             <p class="text-text-secondary dark:text-text-secondary-dark text-xs mt-1.5">
-                              Satu-satunya admin — peran tidak dapat diturunkan.
+                              {superadmin
+                                ? "Superadmin — peran tidak dapat diturunkan."
+                                : "Satu-satunya admin — peran tidak dapat diturunkan."}
                             </p>
                           )}
                         </div>
                       </div>
 
-                      {adminTerakhir && <input type="hidden" name="role" value="admin" />}
+                      {peranTerkunci && <input type="hidden" name="role" value="admin" />}
 
                       <TeacherClassPicker
                         classes={classes}
@@ -319,7 +339,7 @@ export const UsersPage: FC<{
                       </div>
                     </form>
 
-                    {!diriSendiri && !adminTerakhir && (
+                    {!diriSendiri && !peranTerkunci && (
                       <form
                         method="POST"
                         action={`/administrasi/pengguna/${u.id}/hapus`}
@@ -336,6 +356,7 @@ export const UsersPage: FC<{
                       </form>
                     )}
                   </div>
+                  )}
                 </details>
               );
             })}

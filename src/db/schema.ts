@@ -15,6 +15,7 @@ function createBaseTables() {
       name          TEXT NOT NULL,
       avatar_url    TEXT,
       role          TEXT NOT NULL DEFAULT 'guru',
+      is_superadmin INTEGER NOT NULL DEFAULT 0,
       created_at    TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
     );

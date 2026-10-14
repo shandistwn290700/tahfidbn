@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { db } from "../../db/connection.ts";
 import { authMiddleware, adminMiddleware } from "../../middleware/auth.ts";
 import {
@@ -26,6 +26,22 @@ function toIdArray(value: unknown): number[] {
   return raw.map((v) => parseInt(String(v), 10)).filter((v) => Number.isFinite(v));
 }
 
+/**
+ * Akun superadmin hanya boleh diubah pemiliknya sendiri. Admin lain tidak bisa
+ * mengubah, menurunkan, mereset password, atau menghapusnya — diperiksa di rute,
+ * bukan hanya dengan menyembunyikan tombol.
+ */
+function blockedBySuperadmin(
+  c: Context<Env>,
+  target: { id: number; is_superadmin: number }
+): boolean {
+  if (!Boolean(target.is_superadmin) || target.id === c.get("user").id) return false;
+  audit(c, "akses.ditolak", { path: c.req.path, method: c.req.method, targetId: target.id, alasan: "superadmin" }, "warn");
+  return true;
+}
+
+const SUPERADMIN_DITOLAK = "Akun superadmin hanya bisa diubah oleh pemiliknya sendiri.";
+
 /** Simpan penugasan kelas ampuan seorang guru dari body form. */
 function saveTeacherAssignments(userId: number, body: Record<string, unknown>) {
   setTeacherClasses(userId, toIdArray(body.class_ids_tahfid), "tahfid");
@@ -35,7 +51,7 @@ pengguna.get("/", (c) => {
   const user = c.get("user");
 
   const users = db
-    .prepare("SELECT * FROM users ORDER BY role ASC, name COLLATE NOCASE ASC")
+    .prepare("SELECT * FROM users ORDER BY is_superadmin DESC, role ASC, name COLLATE NOCASE ASC")
     .all() as User[];
 
   const rows = db
@@ -93,10 +109,14 @@ pengguna.post("/:id", async (c) => {
   if (!target) {
     return redirectWith(c, BASE, "error", "Pengguna tidak ditemukan.");
   }
+  if (blockedBySuperadmin(c, target)) {
+    return redirectWith(c, BASE, "error", SUPERADMIN_DITOLAK);
+  }
 
   const name = String(body.name || "").trim();
   const email = String(body.email || "").trim();
-  const role = body.role === "admin" ? "admin" : "guru";
+  // Superadmin selalu admin — perannya tidak bisa diturunkan, juga oleh dirinya sendiri.
+  const role = Boolean(target.is_superadmin) || body.role === "admin" ? "admin" : "guru";
 
   if (!name) {
     return redirectWith(c, BASE, "error", "Nama wajib diisi.");
@@ -136,12 +156,15 @@ pengguna.post("/:id/password", async (c) => {
   const body = await c.req.parseBody();
   const newPassword = String(body.password || "");
 
-  const target = db.prepare("SELECT name FROM users WHERE id = ?").get(userId) as
-    | { name: string }
+  const target = db.prepare("SELECT id, name, is_superadmin FROM users WHERE id = ?").get(userId) as
+    | { id: number; name: string; is_superadmin: number }
     | null;
 
   if (!target) {
     return redirectWith(c, BASE, "error", "Pengguna tidak ditemukan.");
+  }
+  if (blockedBySuperadmin(c, target)) {
+    return redirectWith(c, BASE, "error", SUPERADMIN_DITOLAK);
   }
   if (newPassword.length < MIN_PASSWORD) {
     return redirectWith(c, BASE, "error", `Password minimal ${MIN_PASSWORD} karakter.`);
@@ -166,12 +189,16 @@ pengguna.post("/:id/hapus", (c) => {
     return redirectWith(c, BASE, "error", "Anda tidak dapat menghapus akun sendiri.");
   }
 
-  const target = db.prepare("SELECT name, role FROM users WHERE id = ?").get(userId) as
-    | { name: string; role: string }
+  const target = db.prepare("SELECT name, role, is_superadmin FROM users WHERE id = ?").get(userId) as
+    | { name: string; role: string; is_superadmin: number }
     | null;
 
   if (!target) {
     return redirectWith(c, BASE, "error", "Pengguna tidak ditemukan.");
+  }
+  if (Boolean(target.is_superadmin)) {
+    audit(c, "akses.ditolak", { path: c.req.path, method: c.req.method, targetId: userId, alasan: "superadmin" }, "warn");
+    return redirectWith(c, BASE, "error", "Akun superadmin tidak dapat dihapus.");
   }
   if (target.role === "admin" && countAdmins() <= 1) {
     return redirectWith(c, BASE, "error", "Ini satu-satunya akun admin, tidak bisa dihapus.");
