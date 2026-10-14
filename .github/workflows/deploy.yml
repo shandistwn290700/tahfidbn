@@ -12,6 +12,10 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Sidik jari host key VPS (SHA256:...) supaya koneksi deploy tidak bisa
+          # di-MITM. Ambil di VPS: ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+          # Selama secret ini belum diisi, pemeriksaan dilewati seperti sebelumnya.
+          fingerprint: ${{ secrets.VPS_HOST_FINGERPRINT }}
           script: |
             set -e
             export PATH="$HOME/.bun/bin:$PATH"

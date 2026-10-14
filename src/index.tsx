@@ -18,6 +18,7 @@ import { penggunaRoutes } from "./routes/administrasi/pengguna.tsx";
 import { pengaturanRoutes } from "./routes/administrasi/pengaturan.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
 import { homePath } from "./lib/http.ts";
+import { authMiddleware } from "./middleware/auth.ts";
 import "./lib/photos.ts";
 import { startReportWorker } from "./lib/report-queue.ts";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
@@ -66,9 +67,11 @@ app.use(
       formAction: ["'self'"],
       frameAncestors: ["'none'"],
     },
-    // HSTS hanya bermakna di produksi (di balik HTTPS/nginx). 180 hari.
+    // HSTS hanya bermakna di produksi (di balik HTTPS/nginx). 1 tahun — di bawah
+    // itu Nessus menandainya "non-compliant" (plugin 42823). Aplikasi ini satu-
+    // satunya sumber header ini: jangan tambahkan lagi di nginx (header ganda).
     strictTransportSecurity: isProd
-      ? "max-age=15552000; includeSubDomains"
+      ? "max-age=31536000; includeSubDomains"
       : false,
     xFrameOptions: "DENY",
     xContentTypeOptions: "nosniff",
@@ -91,6 +94,14 @@ app.use(
 );
 
 // Foto siswa hasil unggah massal disimpan di data/photos dan dilayani dari sini.
+// Foto wajah anak adalah data pribadi: hanya untuk pengguna yang login, dan tidak
+// boleh disimpan cache bersama. Nama berkasnya ID siswa (mudah ditebak), jadi
+// pemeriksaan login inilah satu-satunya pelindungnya. Laporan PDF/Canva membaca
+// foto langsung dari disk, tidak lewat rute ini.
+app.use("/siswa-foto/*", authMiddleware, async (c, next) => {
+  await next();
+  c.header("Cache-Control", "private, no-store");
+});
 app.use(
   "/siswa-foto/*",
   serveStatic({

@@ -1,32 +1,52 @@
+# Contoh konfigurasi nginx untuk VPS (reverse proxy ke Bun di 127.0.0.1:3000).
+# Diperketat mengikuti temuan Nessus Oktober 2026 — lihat docs/HARDENING-VPS.md.
+#
+# Di blok http {} pada /etc/nginx/nginx.conf, tambahkan juga:
+#     server_tokens off;   # sembunyikan versi nginx (Nessus 10107/106375)
+
+# Akses lewat IP atau Host asing ditolak, bukan diteruskan ke aplikasi.
+# ssl_reject_handshake butuh nginx >= 1.19.4.
+server {
+    listen 80 default_server;
+    listen 443 ssl default_server;
+    ssl_reject_handshake on;
+    return 444;
+}
+
 server {
     listen 80;
     server_name your-domain.com;
 
-    # Redirect HTTP to HTTPS
+    # HTTP selalu dialihkan ke HTTPS dan tidak pernah diproksi ke aplikasi,
+    # jadi header HSTS tidak ikut terkirim lewat HTTP polos.
     return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;   # nginx >= 1.25.1; versi lama: "listen 443 ssl http2;"
     server_name your-domain.com;
 
     # SSL certificates (e.g. from Let's Encrypt / Certbot)
     ssl_certificate     /etc/letsencrypt/live/your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
 
+    # Profil Mozilla "Intermediate": hanya cipher AEAD dengan forward secrecy.
+    # Bila Certbot sudah memasang "include /etc/letsencrypt/options-ssl-nginx.conf;"
+    # di blok ini, pakai salah satu saja — direktif ganda membuat `nginx -t` gagal.
     ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_ciphers         ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers off;
     ssl_session_cache   shared:SSL:10m;
-    ssl_session_timeout 10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
 
-    # Security headers
-    add_header X-Frame-Options       "SAMEORIGIN"   always;
-    add_header X-Content-Type-Options "nosniff"      always;
-    add_header X-XSS-Protection      "1; mode=block" always;
-    add_header Referrer-Policy       "strict-origin-when-cross-origin" always;
+    # Header keamanan (CSP, HSTS, X-Frame-Options, dst.) dikirim oleh aplikasi
+    # lewat secureHeaders di src/index.tsx. JANGAN tambahkan add_header di sini:
+    # header ganda dengan nilai berbeda ditandai pemindai dan membingungkan peramban.
 
     # Proxy to the Bun app
-    # Make sure PORT in .env matches the port below
+    # Make sure PORT in .env matches the port below, and HOST=127.0.0.1
     location / {
         proxy_pass         http://127.0.0.1:3000;
         proxy_http_version 1.1;
@@ -36,20 +56,12 @@ server {
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
 
-        # WebSocket support (if needed)
-        proxy_set_header   Upgrade    $http_upgrade;
-        proxy_set_header   Connection "upgrade";
-
         proxy_read_timeout 60s;
         proxy_connect_timeout 60s;
     }
 
-    # Optional: serve static assets directly via nginx for better performance
-    # location /static/ {
-    #     alias /path/to/your/app/static/;
-    #     expires 30d;
-    #     add_header Cache-Control "public, immutable";
-    # }
+    # Jangan pernah menambahkan root/alias ke folder aplikasi: data/ (basis data,
+    # foto siswa) dan logs/ tidak boleh dilayani nginx secara langsung.
 
     # Logging
     access_log /var/log/nginx/ngaji.access.log;

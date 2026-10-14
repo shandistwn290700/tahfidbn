@@ -47,9 +47,13 @@ Isi minimal:
 APP_NAME=Tahfid <Nama Sekolah>
 APP_URL=https://tahfid.namasekolah.sch.id
 PORT=3000
+HOST=127.0.0.1      # wajib di VPS: aplikasi hanya bisa dicapai lewat nginx
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=<kata sandi kuat, bukan bawaan contoh>
 ```
+
+Tanpa `HOST=127.0.0.1`, port 3000 terbuka ke internet sebagai HTTP polos dan melewati
+nginx (tanpa HTTPS, tanpa pembatasan Host).
 
 **Jangan pakai kata sandi contoh dari `.env.example`** — akun admin pertama dibuat persis
 dari nilai ini saat aplikasi pertama kali berjalan.
@@ -90,7 +94,8 @@ pm2 stop ngaji        # hentikan aplikasi
    sudo cp nginx.conf.example /etc/nginx/sites-available/ngaji
    sudo nano /etc/nginx/sites-available/ngaji
    ```
-2. Ganti `your-domain.com` dengan domain Anda yang sebenarnya (dua tempat).
+2. Ganti `your-domain.com` dengan domain Anda yang sebenarnya (tiga tempat), dan tambahkan
+   `server_tokens off;` di blok `http {}` pada `/etc/nginx/nginx.conf`.
 3. Aktifkan situsnya:
    ```sh
    sudo ln -s /etc/nginx/sites-available/ngaji /etc/nginx/sites-enabled/
@@ -109,6 +114,9 @@ pm2 stop ngaji        # hentikan aplikasi
 
 Buka `https://tahfid.namasekolah.sch.id`, masuk dengan akun admin dari `.env`, lalu **segera
 ganti password lewat menu Akun**.
+
+Setelah itu, perketat server mengikuti [HARDENING-VPS.md](HARDENING-VPS.md): firewall, SSH
+hanya dengan kunci, dan memastikan tidak ada server DNS yang terbuka ke internet.
 
 ## Tanpa domain publik (jaringan lokal saja)
 
