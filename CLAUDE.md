@@ -74,6 +74,16 @@ dihapus oleh migrasi.
   pemeriksaan ini**, jangan bersandar pada tampilan yang menyembunyikan tombol. Penugasan
   kelas per guru diubah lewat `setTeacherClasses()` / `setClassTeachers()` — keduanya butuh
   argumen `subject` dan hanya menimpa baris milik jenis itu.
+- **Superadmin** bukan role tersendiri: role-nya tetap `admin`, ditandai
+  `users.is_superadmin = 1`, jadi seluruh pemeriksaan `role === "admin"` berlaku apa adanya.
+  Bedanya hanya di `src/routes/administrasi/pengguna.tsx`: admin lain tidak bisa mengubah,
+  menurunkan, mereset password, atau menghapus akun superadmin (`blockedBySuperadmin()`), dan
+  superadmin sendiri tidak bisa turun menjadi guru. Tidak ada tombol untuk mengangkat
+  superadmin; yang mendapatkannya hanya akun `ADMIN_USERNAME`, lewat migrasi atau
+  `ensureDefaultAdmin()`.
+- **Foto siswa** (`/siswa-foto/*`) wajib login (`authMiddleware` di `src/index.tsx`) dan
+  dikirim dengan `Cache-Control: private, no-store`. Nama berkasnya ID siswa yang mudah
+  ditebak, jadi jangan pernah melepas pemeriksaan ini.
 
 ### Alur perhitungan hafalan
 
@@ -103,6 +113,8 @@ relevan:
 - **`class_teachers` tanpa kolom `subject`** — menambahkan kolom itu dan mengganti kunci
   primer menjadi `(class_id, user_id, subject)`. Setiap baris lama menjadi baris `tahfid`
   supaya guru yang sudah ditugaskan tidak kehilangan akses.
+- **`users` tanpa kolom `is_superadmin`** (`migrateSuperadmin`) — menambahkan kolom itu
+  dan menandai akun admin `ADMIN_USERNAME` sebagai superadmin.
 - **Sisa Tilawati** (`migrateRemoveTilawati`) — membuang tabel `tilawati_entries`,
   `tilawati_log`, dan baris `class_teachers` berjenis `tilawati`. Cadangan
   `ngaji.backup-pra-hapus-tilawati-*.db` wajib berhasil dibuat lebih dulu; kalau gagal,
@@ -223,3 +235,27 @@ JAVA_HOME="C:/Program Files/Android/Android Studio/jbr" ./gradlew assembleReleas
 - Parameter query angka dibaca lewat `readInt()`/`readOptionalInt()`, jangan `parseInt`
   langsung: `NaN` akan lolos sampai ke SQLite dan memicu galat 500
 - Checkbox bernama sama dibaca dengan `c.req.parseBody({ all: true })`
+
+## Tim Agen
+Proyek ini punya subagent di `.claude/agents/`. Sesi utama bertindak sebagai koordinator dan mendelegasikan tugas ke agen yang sesuai:
+
+| Tim | Agen | Kapan dipakai |
+|---|---|---|
+| Infrastruktur & Otomatisasi | `devops-engineer` | CI/CD, Dockerfile, Railway/PM2, otomatisasi rilis |
+| | `sysadmin-cloud` | Hosting, Nginx reverse proxy, DNS, SSL, izin folder |
+| | `sre` | Stabilitas, performa, backup SQLite, insiden |
+| Pengembangan | `backend-developer` | Rute Hono, bun:sqlite, auth, kesiapan produksi |
+| | `frontend-developer` | Hono JSX, Tailwind, tampilan HP & Android |
+| Manajemen & Kualitas | `qa-engineer` | bun test, skenario uji staging, laporan bug |
+| | `release-manager` | Changelog, cek kesiapan, keputusan GO / NO-GO |
+| Keamanan | `security-engineer` | Audit keamanan sebelum rilis |
+
+- Persiapan rilis lengkap: perintah `/rilis`.
+- Urutan rilis: kesiapan kode → QA → keamanan → pipeline → keputusan release manager.
+
+## Batasan untuk Semua Agen (WAJIB)
+- JANGAN membaca, menampilkan, atau mengubah file `.env`.
+- JANGAN menghapus, menimpa, atau mengosongkan file database di `data/` tanpa izin eksplisit.
+- JANGAN memakai npm/yarn; hanya Bun.
+- JANGAN push ke branch utama, membuat tag, atau deploy ke produksi. Langkah itu selalu dilakukan manusia.
+- Data siswa bersifat sensitif: gunakan data contoh (`bun run seed`), jangan data asli di test atau log.
