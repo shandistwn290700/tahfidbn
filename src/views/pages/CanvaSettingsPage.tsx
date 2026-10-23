@@ -122,7 +122,7 @@ export const CanvaSettingsPage: FC<{
               Terhubung
             </span>
             <form
-              method="POST"
+              method="post"
               action="/administrasi/pengaturan/canva/disconnect"
               data-confirm="Koneksi ke akun Canva akan diputuskan. Fitur autofill laporan tidak akan berfungsi sampai dihubungkan kembali."
               data-confirm-title="Putuskan koneksi Canva?"
@@ -161,7 +161,7 @@ export const CanvaSettingsPage: FC<{
           </p>
 
           <form
-            method="POST"
+            method="post"
             action="/administrasi/pengaturan/canva/template"
             data-loader-text="Menyimpan ID Brand Template"
           >

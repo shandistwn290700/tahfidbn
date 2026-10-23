@@ -24,7 +24,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "hono": "^4.11.10",
+    "hono": "^4.13.13",
     "jszip": "^3.10.1",
     "pdfkit": "^0.15.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"

@@ -86,7 +86,7 @@ export const BackupPage: FC<{
           </p>
 
           <form
-            method="POST"
+            method="post"
             action="/administrasi/pengaturan/backup/pulihkan"
             enctype="multipart/form-data"
             data-confirm="Seluruh data yang sedang berjalan (kelas, siswa, akun, dan catatan hafalan) akan <b>ditimpa</b> dengan isi berkas ini.<br><br>Data saat ini akan dicadangkan otomatis lebih dulu, tetapi pastikan berkas yang diunggah benar sebelum melanjutkan."
@@ -154,7 +154,7 @@ export const BackupPage: FC<{
                     Unduh
                   </a>
                   <form
-                    method="POST"
+                    method="post"
                     action="/administrasi/pengaturan/backup/hapus"
                     data-confirm={`Berkas cadangan <b>${backup.filename}</b> akan dihapus permanen dari server.`}
                     data-confirm-title="Hapus cadangan ini?"

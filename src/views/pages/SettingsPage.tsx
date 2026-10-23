@@ -32,7 +32,7 @@ export const SettingsPage: FC<{
             Nama ini tampil di judul tab peramban, halaman masuk, dan bagian atas setiap halaman.
           </p>
           <form
-            method="POST"
+            method="post"
             action="/administrasi/pengaturan/nama"
             data-loader-text="Menyimpan nama situs"
           >
@@ -77,7 +77,7 @@ export const SettingsPage: FC<{
           </div>
 
           <form
-            method="POST"
+            method="post"
             action="/administrasi/pengaturan/favicon"
             enctype="multipart/form-data"
             data-loader-text="Mengunggah favicon"
@@ -103,7 +103,7 @@ export const SettingsPage: FC<{
 
           {hasCustomFavicon && (
             <form
-              method="POST"
+              method="post"
               action="/administrasi/pengaturan/favicon/reset"
               class="mt-4 pt-4 border-t border-border-light dark:border-border-light-dark"
               data-confirm="Favicon akan dikembalikan ke ikon bawaan aplikasi."

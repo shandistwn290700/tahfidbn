@@ -36,7 +36,7 @@ export const SearchFilter: FC<{
 
   return (
     <form
-      method="GET"
+      method="get"
       action={action}
       class={`${CARD} w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3 mb-6 p-3`}
     >

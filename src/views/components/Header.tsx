@@ -338,7 +338,7 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
                   <span class="material-symbols-outlined text-[20px]">key</span>
                   Ganti Password
                 </a>
-                <form method="POST" action="/auth/logout" data-loader-text="Keluar dari aplikasi">
+                <form method="post" action="/auth/logout" data-loader-text="Keluar dari aplikasi">
                   <button
                     type="submit"
                     class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
@@ -519,7 +519,7 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
             <span class="material-symbols-outlined text-[20px]">key</span>
             Ganti Password
           </a>
-          <form method="POST" action="/auth/logout" data-loader-text="Keluar dari aplikasi">
+          <form method="post" action="/auth/logout" data-loader-text="Keluar dari aplikasi">
             <button
               type="submit"
               class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-sm font-bold"

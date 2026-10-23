@@ -95,7 +95,7 @@ export const ClassesPage: FC<{
       wide
     >
       <Collapsible id="form-tambah-kelas" label="Tambah Kelas Baru" icon="add_circle">
-        <form method="POST" action="/administrasi/kelas" data-loader-text="Menyimpan kelas">
+        <form method="post" action="/administrasi/kelas" data-loader-text="Menyimpan kelas">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
               <label class={LABEL} for="nama-kelas-baru">
@@ -174,7 +174,7 @@ export const ClassesPage: FC<{
 
                 <div class="px-5 pb-5 pt-2 bg-slate-50/50 dark:bg-slate-800/20">
                   <form
-                    method="POST"
+                    method="post"
                     action={`/administrasi/kelas/${kelas.id}`}
                     data-loader-text="Menyimpan perubahan"
                   >
@@ -230,7 +230,7 @@ export const ClassesPage: FC<{
                   </form>
 
                   <form
-                    method="POST"
+                    method="post"
                     action={`/administrasi/kelas/${kelas.id}/hapus`}
                     class="mt-4 pt-4 border-t border-border-light dark:border-border-light-dark"
                     data-confirm={`Kelas <b>${kelas.name}</b> akan dihapus.<br><br>${kelas.student_count} siswa di dalamnya <b>tidak ikut terhapus</b>, tetapi statusnya menjadi belum berkelas dan perlu ditempatkan ulang.`}

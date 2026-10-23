@@ -35,7 +35,7 @@ export const AccountPage: FC<{ user: User }> = ({ user }) => (
       </p>
 
       <form
-        method="POST"
+        method="post"
         action="/akun/password"
         data-confirm="Anda akan dikeluarkan dari aplikasi dan perlu masuk kembali dengan password baru."
         data-confirm-title="Ganti password sekarang?"

@@ -32,7 +32,7 @@ export const LoginPage: FC<{ error?: string; success?: string }> = ({ error }) =
               </div>
             )}
 
-            <form method="POST" action="/auth/login" data-loader-text="Memverifikasi akun">
+            <form method="post" action="/auth/login" data-loader-text="Memverifikasi akun">
               <div class="mb-4">
                 <label
                   class="block text-text-secondary dark:text-text-secondary-dark text-xs font-bold uppercase tracking-wider mb-1.5"

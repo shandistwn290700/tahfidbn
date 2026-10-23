@@ -82,7 +82,7 @@ export const ReportSettingsPage: FC<{
           </div>
 
           <form
-            method="POST"
+            method="post"
             action="/administrasi/pengaturan/laporan/logo"
             enctype="multipart/form-data"
             data-loader-text="Mengunggah logo laporan"
@@ -108,7 +108,7 @@ export const ReportSettingsPage: FC<{
 
           {reportLogo && (
             <form
-              method="POST"
+              method="post"
               action="/administrasi/pengaturan/laporan/logo/reset"
               class="mt-4 pt-4 border-t border-border-light dark:border-border-light-dark"
               data-confirm="Logo pada PDF Laporan Periode akan dihapus."
@@ -136,7 +136,7 @@ export const ReportSettingsPage: FC<{
             dipakai — baris itu tidak akan ditampilkan.
           </p>
           <form
-            method="POST"
+            method="post"
             action="/administrasi/pengaturan/laporan/identitas"
             data-loader-text="Menyimpan identitas laporan"
             class="space-y-4"
@@ -237,7 +237,7 @@ export const ReportSettingsPage: FC<{
             <div>
               <div class="flex flex-col sm:flex-row items-end gap-4">
                 <form
-                  method="POST"
+                  method="post"
                   action="/administrasi/pengaturan/laporan/semester"
                   data-loader-text="Menyimpan tanggal mulai semester"
                   class="flex flex-col sm:flex-row items-end gap-4 flex-1"
@@ -262,7 +262,7 @@ export const ReportSettingsPage: FC<{
                 </form>
                 {semesterStart && (
                   <form
-                    method="POST"
+                    method="post"
                     action="/administrasi/pengaturan/laporan/semester/reset"
                     data-confirm="Tanggal mulai semester akan dihapus. Laporan Pekanan akan mengisi nomor pekan dengan tanda - sampai diatur ulang."
                     data-confirm-title="Hapus tanggal mulai semester?"
@@ -282,7 +282,7 @@ export const ReportSettingsPage: FC<{
             <div>
               <div class="flex flex-col sm:flex-row items-end gap-4">
                 <form
-                  method="POST"
+                  method="post"
                   action="/administrasi/pengaturan/laporan/semester-selesai"
                   data-loader-text="Menyimpan tanggal selesai semester"
                   class="flex flex-col sm:flex-row items-end gap-4 flex-1"
@@ -307,7 +307,7 @@ export const ReportSettingsPage: FC<{
                 </form>
                 {semesterEnd && (
                   <form
-                    method="POST"
+                    method="post"
                     action="/administrasi/pengaturan/laporan/semester-selesai/reset"
                     data-confirm="Tanggal selesai semester akan dihapus. Laporan Tengah Semester dan Laporan Semester tidak akan bisa dibuat sampai diatur ulang."
                     data-confirm-title="Hapus tanggal selesai semester?"

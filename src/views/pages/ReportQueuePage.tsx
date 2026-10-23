@@ -99,7 +99,7 @@ const JobCard: FC<{
             </a>
           )}
           {!active && job.failed_count > 0 && (
-            <form method="POST" action={`/laporan/antrean/${job.id}/ulang`} data-loader-text="Memasukkan ulang ke antrean">
+            <form method="post" action={`/laporan/antrean/${job.id}/ulang`} data-loader-text="Memasukkan ulang ke antrean">
               <button type="submit" class={BTN_GHOST}>
                 <span class="material-symbols-outlined text-[20px]">replay</span>
                 Ulangi yang gagal
@@ -108,7 +108,7 @@ const JobCard: FC<{
           )}
           {active && (
             <form
-              method="POST"
+              method="post"
               action={`/laporan/antrean/${job.id}/batal`}
               data-confirm={`Pembuatan laporan <b>${job.label}</b> akan dihentikan. Laporan yang sudah jadi tetap bisa diunduh.`}
               data-confirm-title="Batalkan antrean ini?"

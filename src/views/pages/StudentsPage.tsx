@@ -85,7 +85,7 @@ export const StudentsPage: FC<{
       >
         <TabPanel id="satu" active>
           <div class={`${CARD} p-6`}>
-            <form method="POST" action="/administrasi/siswa" data-loader-text="Menyimpan siswa">
+            <form method="post" action="/administrasi/siswa" data-loader-text="Menyimpan siswa">
               <input type="hidden" name="return_kelas" value={kelasFilter} />
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-2">
@@ -140,7 +140,7 @@ export const StudentsPage: FC<{
         <TabPanel id="massal">
           <div class={`${CARD} p-6`}>
             <form
-              method="POST"
+              method="post"
               action="/administrasi/siswa/massal"
               data-loader-text="Menambahkan siswa"
             >
@@ -207,7 +207,7 @@ export const StudentsPage: FC<{
               Unduh Template Excel
             </a>
             <form
-              method="POST"
+              method="post"
               action="/administrasi/siswa/impor"
               enctype="multipart/form-data"
               data-loader-text="Mengimpor data siswa"
@@ -243,7 +243,7 @@ export const StudentsPage: FC<{
               per foto).
             </p>
             <form
-              method="POST"
+              method="post"
               action="/administrasi/siswa/foto"
               enctype="multipart/form-data"
               data-loader-text="Mengunggah foto siswa"
@@ -272,7 +272,7 @@ export const StudentsPage: FC<{
       </TabbedPanels>
 
       {/* Penyaring */}
-      <form method="GET" action="/administrasi/siswa" class={`${CARD} p-3 mb-6 flex flex-col sm:flex-row gap-3`}>
+      <form method="get" action="/administrasi/siswa" class={`${CARD} p-3 mb-6 flex flex-col sm:flex-row gap-3`}>
         <div class="flex gap-2 flex-1">
           <div class="relative flex-1 min-w-0">
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-[20px]">
@@ -371,7 +371,7 @@ export const StudentsPage: FC<{
 
                 <div class="px-5 pb-5 pt-2 bg-slate-50/50 dark:bg-slate-800/20">
                   <form
-                    method="POST"
+                    method="post"
                     action={`/administrasi/siswa/${siswa.id}`}
                     data-loader-text="Menyimpan perubahan"
                   >
@@ -437,7 +437,7 @@ export const StudentsPage: FC<{
                   </form>
 
                   <form
-                    method="POST"
+                    method="post"
                     action={`/administrasi/siswa/${siswa.id}/hapus`}
                     class="mt-4 pt-4 border-t border-border-light dark:border-border-light-dark"
                     data-confirm={`Data siswa <b>${siswa.name}</b> akan dihapus permanen, <b>termasuk seluruh catatan hafalannya</b> (${siswa.total_ayah} ayat).<br><br>Tindakan ini tidak dapat dibatalkan.`}

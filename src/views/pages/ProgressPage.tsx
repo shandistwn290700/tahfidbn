@@ -91,7 +91,7 @@ export const ProgressPage: FC<{
     >
       {/* Pemilih kelas */}
       <div class={`${CARD} p-3 mb-6`}>
-        <form method="GET" action="/progress" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
+        <form method="get" action="/progress" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
           <div class="flex-1">
             <label class={LABEL} for="pilih-kelas">
               Kelas
@@ -150,7 +150,7 @@ export const ProgressPage: FC<{
         <div class="mb-6 flex flex-wrap items-center gap-2">
           {canvaReady ? (
             <form
-              method="POST"
+              method="post"
               action={`/laporan/kelas/${selectedClass.id}/antrean`}
               data-confirm={`Laporan Pekanan untuk <b>${rows.length} siswa</b> kelas ${selectedClass.name} akan dibuat lewat Canva, satu per satu.<br><br>Prosesnya berjalan di server — halaman boleh ditutup. Unduh ZIP-nya di halaman Antrean Laporan setelah selesai.`}
               data-confirm-title="Buat laporan sekelas?"
@@ -244,7 +244,7 @@ export const ProgressPage: FC<{
                             const surah = SURAHS[entry.surah_number - 1];
                             return (
                               <form
-                                method="POST"
+                                method="post"
                                 action="/progress/hapus"
                                 class="inline-flex"
                                 data-confirm={`Catatan <b>${surah?.name}</b> untuk ${row.student.name} akan dihapus.`}
@@ -279,7 +279,7 @@ export const ProgressPage: FC<{
                       </div>
                     )}
 
-                    <form method="POST" action="/progress" data-loader-text="Menyimpan hafalan">
+                    <form method="post" action="/progress" data-loader-text="Menyimpan hafalan">
                       <input type="hidden" name="student_id" value={String(row.student.id)} />
                       <input
                         type="hidden"
@@ -328,7 +328,7 @@ export const ProgressPage: FC<{
 
                     {canvaReady && (
                       <form
-                        method="POST"
+                        method="post"
                         action={`/laporan/siswa/${row.student.id}/antrean`}
                         class="mt-5 pt-4 border-t border-border-light dark:border-border-light-dark flex flex-wrap gap-2"
                         data-loader-text="Memasukkan ke antrean"

@@ -99,7 +99,7 @@ export const UsersPage: FC<{
       wide
     >
       <Collapsible id="form-tambah-pengguna" label="Tambah Pengguna" icon="person_add">
-        <form method="POST" action="/administrasi/pengguna" data-loader-text="Membuat akun">
+        <form method="post" action="/administrasi/pengguna" data-loader-text="Membuat akun">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
               <label class={LABEL} for="nama-pengguna-baru">
@@ -237,7 +237,7 @@ export const UsersPage: FC<{
                   ) : (
                   <div class="px-5 pb-5 pt-2 bg-slate-50/50 dark:bg-slate-800/20">
                     <form
-                      method="POST"
+                      method="post"
                       action={`/administrasi/pengguna/${u.id}`}
                       data-loader-text="Menyimpan perubahan"
                     >
@@ -310,7 +310,7 @@ export const UsersPage: FC<{
                     </form>
 
                     <form
-                      method="POST"
+                      method="post"
                       action={`/administrasi/pengguna/${u.id}/password`}
                       class="mt-5 pt-4 border-t border-border-light dark:border-border-light-dark"
                       data-confirm={`Password <b>${u.name}</b> akan diganti dan seluruh sesi loginnya akan dikeluarkan.`}
@@ -341,7 +341,7 @@ export const UsersPage: FC<{
 
                     {!diriSendiri && !peranTerkunci && (
                       <form
-                        method="POST"
+                        method="post"
                         action={`/administrasi/pengguna/${u.id}/hapus`}
                         class="mt-5 pt-4 border-t border-border-light dark:border-border-light-dark"
                         data-confirm={`Akun <b>${u.name}</b> akan dihapus permanen dan tidak bisa login lagi.<br><br>Data siswa dan catatan hafalan <b>tidak terpengaruh</b>.`}
