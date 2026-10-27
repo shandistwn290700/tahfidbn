@@ -41,9 +41,16 @@ function isAdminLinkActive(currentPath: string, href: string): boolean {
   return currentPath === href || currentPath.startsWith(`${href}/`);
 }
 
+// Laporan Periode (tengah semester / semester penuh) disembunyikan sementara (Okt 2026)
+// sampai pembuatannya lewat Canva siap. Halamannya (/leaderboard/periode) tetap ada;
+// ubah ke true untuk menampilkannya lagi di menu.
+const TAMPILKAN_LAPORAN_PERIODE = false;
+
 const PAPAN_PERINGKAT_LINKS = [
   { href: "/leaderboard", label: "Tahfid Al-Qur'an", icon: "auto_stories" },
-  { href: "/leaderboard/periode", label: "Laporan Periode", icon: "event_note" },
+  ...(TAMPILKAN_LAPORAN_PERIODE
+    ? [{ href: "/leaderboard/periode", label: "Laporan Periode", icon: "event_note" }]
+    : []),
 ];
 
 const INPUT_LINKS = [
