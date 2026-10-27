@@ -405,11 +405,7 @@ async function processItem(item: QueueItem): Promise<number> {
   }
 
   try {
-    const image = await generateWeeklyReportViaCanva(
-      student,
-      item.week_number,
-      getWeeklyAyahMemorized(student.id)
-    );
+    const image = await generateWeeklyReportViaCanva(student, getWeeklyAyahMemorized(student.id));
     const dir = jobDir(item.job_id);
     mkdirSync(dir, { recursive: true });
     const fileName = `item-${item.id}.jpg`;

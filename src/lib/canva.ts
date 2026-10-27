@@ -449,8 +449,9 @@ export interface CanvaReportStudent {
  * Menghasilkan Laporan Pekanan (gambar JPG) lewat Autofill Brand Template Canva —
  * satu-satunya jalur Laporan Pekanan (PDF bawaan pdfkit kini hanya untuk Laporan Periode).
  * Jangan dipanggil langsung dari rute: lewati antrean di report-queue.ts supaya
- * batas kecepatan API Canva terjaga. Field yang diisi: nama, pekan, ayat, ayat_sebelum,
- * ayat_total, foto (opsional). `ayat_sebelum` = total hafalan saat ini
+ * batas kecepatan API Canva terjaga. Field yang diisi: nama, ayat, ayat_sebelum,
+ * ayat_total, foto (opsional). Tidak ada field pekan: judul "Laporan Pekanan" ditulis
+ * tetap di desain Canva. `ayat_sebelum` = total hafalan saat ini
  * (getStudentProgress) dikurangi tambahan pekan ini, supaya konsisten
  * secara matematis: sebelum + ayat = total. Untuk siswa yang seluruh
  * riwayatnya baru tercatat dalam 7 hari terakhir (mis. baru pertama kali
@@ -459,7 +460,6 @@ export interface CanvaReportStudent {
  */
 export async function generateWeeklyReportViaCanva(
   student: CanvaReportStudent,
-  weekNumber: number | null,
   ayat: number
 ): Promise<Buffer> {
   const brandTemplateId = getBrandTemplateId();
@@ -472,7 +472,6 @@ export async function generateWeeklyReportViaCanva(
 
   const fields: Record<string, AutofillField> = {
     nama: { type: "text", value: student.name },
-    pekan: { type: "text", value: weekNumber ? String(weekNumber) : "-" },
     ayat: { type: "text", value: `${ayat} ayat.` },
     ayat_sebelum: { type: "text", value: `${totalSebelum} ayat` },
     ayat_total: { type: "text", value: `${totalKeseluruhan} ayat` },

@@ -40,7 +40,7 @@ export const ReportSettingsPage: FC<{
       currentPath={currentPath}
       title="Pengaturan Laporan"
       heading="Pengaturan"
-      subheading="Atur tanggal semester (dasar nomor pekan dan Laporan Periode) serta tampilan PDF Laporan Periode. Tampilan Laporan Pekanan diatur langsung di desain Canva."
+      subheading="Atur tanggal semester (dasar Laporan Periode) serta tampilan PDF Laporan Periode. Tampilan Laporan Pekanan diatur langsung di desain Canva."
       actions={
         <a
           href="/administrasi/pengaturan/laporan/pratinjau"
@@ -218,8 +218,8 @@ export const ReportSettingsPage: FC<{
             Tanggal Semester
           </h2>
           <p class="text-text-secondary dark:text-text-secondary-dark text-sm mb-5">
-            Dasar nomor pekan pada Laporan Pekanan (isian <code>pekan</code> di Canva), serta cakupan tanggal Laporan Tengah
-            Semester dan Laporan Semester. Atur ulang setiap awal semester/tahun ajaran baru.
+            Cakupan tanggal Laporan Tengah Semester dan Laporan Semester, serta nomor pekan semester yang tampil di
+            Antrean Laporan dan nama berkas unduhan. Atur ulang setiap awal semester/tahun ajaran baru.
           </p>
 
           <div class="flex flex-wrap gap-2 mb-5">
@@ -264,7 +264,7 @@ export const ReportSettingsPage: FC<{
                   <form
                     method="post"
                     action="/administrasi/pengaturan/laporan/semester/reset"
-                    data-confirm="Tanggal mulai semester akan dihapus. Laporan Pekanan akan mengisi nomor pekan dengan tanda - sampai diatur ulang."
+                    data-confirm="Tanggal mulai semester akan dihapus. Laporan Tengah Semester dan Laporan Semester tidak bisa dibuat sampai diatur ulang."
                     data-confirm-title="Hapus tanggal mulai semester?"
                     data-confirm-icon="question"
                     data-confirm-ok="Ya, hapus"

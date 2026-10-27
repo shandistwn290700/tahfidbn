@@ -178,6 +178,10 @@ di `src/lib/http.ts`.
   PDF, supaya orang tua bisa langsung membagikannya ke status WhatsApp / Stories. Template
   Canva sebaiknya satu halaman 1080×1920. Tipe unduhan dibaca dari ekstensi berkas tersimpan
   (`storedFileType()`), jadi job PDF lama tetap terunduh sebagai PDF.
+- Field Autofill yang dikirim hanya `nama`, `ayat`, `ayat_sebelum`, `ayat_total`, dan `foto`.
+  **Tidak ada field pekan** (keputusan Okt 2026): judul "Laporan Pekanan" ditulis tetap di
+  desain Canva. Nomor pekan semester (`report_jobs.week_number`) hanya untuk tampilan antrean
+  dan nama berkas unduhan.
 - Redirect URI OAuth: `CANVA_REDIRECT_URI`, atau diturunkan dari `APP_URL` bila kosong.
 - **Laporan Periode** tetap PDF bawaan (`generateWeeklyReportPdf()` dengan `heading`/
   `periodLabel`); logo, nama sekolah, dan kontak di Pengaturan › Laporan & Semester hanya

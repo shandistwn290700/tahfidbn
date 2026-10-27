@@ -110,14 +110,13 @@ Ini bagian yang paling sering salah arah, jadi diperhatikan baik-baik urutannya.
    (bukan dari "desain terakhir dibuka") → klik **Edit yang asli**.
 2. Di sidebar kiri, klik **"Buat banyak"** (Bulk Create).
 3. Klik **"Masukkan data secara manual"**.
-4. Akan muncul tabel dengan kolom. **Satu kolom = satu field data** — buat enam kolom
+4. Akan muncul tabel dengan kolom. **Satu kolom = satu field data** — buat lima kolom
    persis dengan nama berikut (klik header kolom untuk mengganti namanya, atau klik
    "Tambahkan teks"/"Tambahkan gambar" untuk kolom baru):
 
    | Nama kolom | Jenis | Dipakai untuk baris di desain |
    |---|---|---|
    | `nama` | Teks | Nama siswa |
-   | `pekan` | Teks | Nomor pekan berjalan (`-` bila tanggal mulai semester belum diatur) |
    | `ayat` | Teks | Tambahan hafalan 7 hari terakhir, mis. `12 ayat.` |
    | `ayat_sebelum` | Teks | Total hafalan sebelum tambahan pekan ini |
    | `ayat_total` | Teks | Total hafalan keseluruhan setelah tambahan pekan ini |
@@ -135,7 +134,11 @@ Ini bagian yang paling sering salah arah, jadi diperhatikan baik-baik urutannya.
      tujuan di kanvas.
    - **Cara alternatif:** klik kanan elemen di kanvas → pilih **"Connect data"** → pilih
      kolom yang sesuai dari daftar.
-   - Ulangi untuk keenam elemen (nama, pekan, ayat, ayat_sebelum, ayat_total, foto).
+   - Ulangi untuk kelima elemen (nama, ayat, ayat_sebelum, ayat_total, foto).
+
+   Tidak ada field pekan. Judul seperti "Laporan Pekanan" cukup ditulis sebagai teks biasa
+   di desain. Kalau template lama masih punya kotak yang tersambung ke field `pekan`, hapus
+   kotaknya atau putuskan sambungannya, karena aplikasi tidak lagi mengisinya.
 7. Cek satu per satu: elemen yang **belum tersambung** akan tetap menampilkan teks
    placeholder aslinya (mis. tanda `-` atau `Lorem ipsum`) walau datanya sudah dikirim dari
    aplikasi — kalau ada baris laporan yang selalu kosong/salah, ini penyebabnya, bukan bug
