@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.ts";
-import { canTeachClass, canTeachStudent } from "../lib/access.ts";
+import { canTeachClass, canTeachStudent, listTeachableClasses } from "../lib/access.ts";
+import { getClassProgress, loadAllTrends } from "../lib/progress-calc.ts";
+import { ReportCreatePage, type ReportRow } from "../views/pages/ReportCreatePage.tsx";
 import { db } from "../db/connection.ts";
 import { readInt, readOptionalInt, redirectWith } from "../lib/http.ts";
 import { generateWeeklyReportPdf, type ReportStudent } from "../lib/weekly-report.ts";
@@ -36,16 +38,43 @@ const CANVA_NOT_READY =
   "Laporan Pekanan dibuat lewat Canva, tetapi Canva belum terhubung atau ID Brand Template " +
   "belum diisi. Minta admin mengaturnya di Administrasi › Pengaturan › Integrasi Canva.";
 
-/** Halaman tujuan setelah memasukkan antrean: kembali ke kelas di halaman input bila diketahui. */
-function backToProgress(classId: number | null): string {
-  return classId ? `/progress?kelas=${classId}` : "/progress";
+/** Halaman tujuan bila permintaan laporan ditolak: kembali ke kelas di halaman Laporan Pekanan. */
+function backToReports(classId: number | null): string {
+  return classId ? `/laporan?kelas=${classId}` : "/laporan";
 }
+
+/** Halaman Laporan Pekanan: pilih kelas, lalu buat laporan per siswa atau sekelas. */
+laporan.get("/", (c) => {
+  const user = c.get("user");
+  const teachable = listTeachableClasses(user, "tahfid");
+
+  const requested = readOptionalInt(c.req.query("kelas"));
+  const selected = teachable.find((k) => k.id === requested) ?? teachable[0] ?? null;
+
+  // Tiga query untuk sekelas (siswa, hafalan, tren) — bukan satu query per siswa.
+  const trends = loadAllTrends();
+  const rows: ReportRow[] = (selected ? getClassProgress(selected.id) : []).map((r) => ({
+    ...r.student,
+    ayatPekanIni: trends.get(r.student.id) ?? 0,
+    totalMemorized: r.totalMemorized,
+  }));
+
+  return c.html(
+    <ReportCreatePage
+      user={user}
+      classes={teachable}
+      selectedClass={selected}
+      rows={rows}
+      canvaReady={canvaReady()}
+    />
+  );
+});
 
 /** Masukkan Laporan Pekanan seluruh siswa satu kelas ke antrean Canva. */
 laporan.post("/kelas/:classId/antrean", (c) => {
   const user = c.get("user");
   const classId = readInt(c.req.param("classId"), 0, { min: 0 });
-  const back = backToProgress(classId);
+  const back = backToReports(classId);
 
   if (!canTeachClass(user, classId, "tahfid")) {
     return redirectWith(c, back, "error", "Anda tidak berhak membuat laporan kelas ini.");
@@ -70,7 +99,7 @@ laporan.post("/siswa/:id/antrean", async (c) => {
   const user = c.get("user");
   const studentId = readInt(c.req.param("id"), 0, { min: 0 });
   const body = await c.req.parseBody();
-  const back = backToProgress(readOptionalInt(body.return_kelas as string));
+  const back = backToReports(readOptionalInt(body.return_kelas as string));
 
   if (!canTeachStudent(user, studentId, "tahfid")) {
     return redirectWith(c, back, "error", "Anda tidak berhak membuat laporan siswa ini.");

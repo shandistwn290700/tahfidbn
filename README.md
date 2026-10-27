@@ -211,11 +211,12 @@ berulang kali (mis. saat menyalakan ulang server).
 ## Laporan Pekanan (via Canva)
 
 Laporan Pekanan dibuat **lewat Canva**: aplikasi mengisi Brand Template desain sekolah secara
-otomatis (Autofill API), mengekspornya sebagai PDF, lalu menyimpannya untuk diunduh. Guru
-menekan **Buat Laporan Pekanan (Canva)** per siswa atau **sekelas** di Input › Hafalan Qur'an.
+otomatis (Autofill API), mengekspor halaman pertamanya sebagai gambar JPG, lalu menyimpannya
+untuk diunduh. Guru menekan **Buat Laporan** per siswa atau **Buat Laporan Sekelas** di
+**Laporan › Laporan Pekanan**, terpisah dari halaman input hafalan.
 Setiap permintaan masuk **antrean FIFO**: satu pekerja di server memproses satu siswa demi
 satu, urut permintaan yang masuk lebih dulu, untuk semua guru sekaligus. Progres dan tombol
-unduh (PDF untuk satu siswa, ZIP untuk sekelas) ada di **Input › Antrean Laporan**. Halaman
+unduh (JPG untuk satu siswa, ZIP untuk sekelas) ada di **Laporan › Antrean Laporan**. Halaman
 boleh ditutup selama proses berjalan, dan hasil disimpan 7 hari di `data/reports/`.
 
 Jumlah ayat pada laporan dihitung dari tambahan hafalan **7 hari terakhir** siswa tersebut

@@ -192,7 +192,7 @@ export const ReportQueuePage: FC<{
           <EmptyState
             icon="pending_actions"
             title="Belum ada laporan di antrean"
-            description="Buat Laporan Pekanan dari halaman Input › Hafalan Qur'an, per siswa atau sekelas sekaligus."
+            description="Buat Laporan Pekanan dari halaman Laporan › Laporan Pekanan, per siswa atau sekelas sekaligus."
           />
         ) : (
           <div class="divide-y divide-border-light dark:divide-border-light-dark">

@@ -165,13 +165,14 @@ Ini bagian yang paling sering salah arah, jadi diperhatikan baik-baik urutannya.
 
 ## Langkah 7 — Uji coba
 
-1. Buka **Input › Hafalan Qur'an**, pilih kelas, buka satu siswa, lalu klik
-   **"Buat Laporan Pekanan (Canva)"**.
-2. Anda dibawa ke **Input › Antrean Laporan**. Halaman ini memperbarui diri sendiri tiap
+1. Buka **Laporan › Laporan Pekanan**, pilih kelas, lalu klik **"Buat Laporan"** di baris
+   satu siswa. Halaman ini juga menampilkan tambahan ayat pekan ini dan total hafalan tiap
+   siswa, yaitu angka yang akan masuk ke laporan.
+2. Anda dibawa ke **Laporan › Antrean Laporan**. Halaman ini memperbarui diri sendiri tiap
    5 detik. Satu laporan biasanya selesai dalam 15–60 detik, lalu tombol **Unduh Gambar**
    muncul. Hasilnya berkas `.jpg`.
-3. Kalau berhasil, coba **"Buat Laporan Pekanan Sekelas (Canva)"**. Hasilnya satu ZIP berisi
-   satu JPG per siswa.
+3. Kalau berhasil, coba **"Buat Laporan Sekelas"**. Hasilnya satu ZIP berisi satu JPG per
+   siswa.
 
 ### Cara kerja antrean (FIFO)
 
@@ -247,4 +248,4 @@ Periksa berurutan:
 | Satu baris di laporan selalu menampilkan `-` atau teks placeholder | Elemen itu belum disambungkan ("Connect data") ke kolom data-nya | Buka lagi Bulk Create, drag/connect kolom yang benar ke elemen tsb |
 | Status Canva tiba-tiba "belum terhubung" dan antrean berhenti | Refresh token ditolak Canva — biasanya karena token dipakai dari dua tempat (laptop & VPS) | Lihat [Pindah ke VPS](#pindah-ke-vps--daftar-periksa) nomor 4–5, lalu hubungkan ulang. Antrean lanjut sendiri |
 | "The socket connection was closed unexpectedly" | Galat jaringan sesaat ke server Canva | Dicoba ulang otomatis. Kalau tetap gagal, klik **Ulangi yang gagal** |
-| Antrean lama sekali | Normal — satu siswa per ±5–30 detik supaya tidak melanggar batas Canva | Halaman boleh ditutup; buka lagi Input › Antrean Laporan nanti |
+| Antrean lama sekali | Normal — satu siswa per ±5–30 detik supaya tidak melanggar batas Canva | Halaman boleh ditutup; buka lagi Laporan › Antrean Laporan nanti |

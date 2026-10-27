@@ -6,7 +6,6 @@ import { resolveProgressUpdateInput } from "../lib/progress-input.ts";
 import { listTeachableClasses, canTeachStudent } from "../lib/access.ts";
 import { readInt, readOptionalInt, redirectWith } from "../lib/http.ts";
 import { db } from "../db/connection.ts";
-import { isCanvaConnected, getBrandTemplateId } from "../lib/canva.ts";
 import { ProgressPage } from "../views/pages/ProgressPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -32,7 +31,6 @@ progress.get("/", (c) => {
       classes={teachable}
       selectedClass={selected}
       rows={rows}
-      canvaReady={isCanvaConnected() && Boolean(getBrandTemplateId())}
     />
   );
 });

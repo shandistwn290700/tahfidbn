@@ -53,8 +53,10 @@ const PAPAN_PERINGKAT_LINKS = [
     : []),
 ];
 
-const INPUT_LINKS = [
-  { href: "/progress", label: "Hafalan Qur'an", icon: "auto_stories" },
+const INPUT_LINKS = [{ href: "/progress", label: "Hafalan Qur'an", icon: "auto_stories" }];
+
+const LAPORAN_LINKS = [
+  { href: "/laporan", label: "Laporan Pekanan", icon: "description" },
   { href: "/laporan/antrean", label: "Antrean Laporan", icon: "pending_actions" },
 ];
 
@@ -123,6 +125,7 @@ const headerScript = `
   pasangDropdown('tombol-administrasi', 'panel-administrasi');
   pasangDropdown('tombol-papan-peringkat', 'panel-papan-peringkat');
   pasangDropdown('tombol-input', 'panel-input');
+  pasangDropdown('tombol-laporan', 'panel-laporan');
 
   function pasangMobileToggle(tombolId, panelId, ikonId) {
     var tombol = document.getElementById(tombolId);
@@ -143,6 +146,7 @@ const headerScript = `
     'papan-peringkat-mobile-toggle', 'papan-peringkat-mobile-panel', 'papan-peringkat-mobile-icon'
   );
   pasangMobileToggle('input-mobile-toggle', 'input-mobile-panel', 'input-mobile-icon');
+  pasangMobileToggle('laporan-mobile-toggle', 'laporan-mobile-panel', 'laporan-mobile-icon');
 
   function pasangTema(id) {
     var btn = document.getElementById(id);
@@ -172,6 +176,7 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
   const adminActive = currentPath.startsWith("/administrasi");
   const papanPeringkatActive = isGroupActive(currentPath, PAPAN_PERINGKAT_LINKS);
   const inputActive = isGroupActive(currentPath, INPUT_LINKS);
+  const laporanActive = isGroupActive(currentPath, LAPORAN_LINKS);
 
   const initials = user.name
     .split(" ")
@@ -257,6 +262,36 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
                   class="hidden absolute right-0 mt-3 w-56 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-xl shadow-lg overflow-hidden py-1"
                 >
                   {INPUT_LINKS.map((link) => (
+                    <a
+                      href={link.href}
+                      class={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                        currentPath === link.href
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-text-secondary dark:text-text-secondary-dark hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-text-main dark:hover:text-text-main-dark"
+                      }`}
+                    >
+                      <span class="material-symbols-outlined text-[20px]">{link.icon}</span>
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              <div class="relative">
+                <button
+                  id="tombol-laporan"
+                  type="button"
+                  aria-expanded="false"
+                  class={`${deskLink(laporanActive)} flex items-center gap-1`}
+                >
+                  Laporan
+                  <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                </button>
+                <div
+                  id="panel-laporan"
+                  class="hidden absolute right-0 mt-3 w-56 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-xl shadow-lg overflow-hidden py-1"
+                >
+                  {LAPORAN_LINKS.map((link) => (
                     <a
                       href={link.href}
                       class={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
@@ -449,6 +484,37 @@ export const Header: FC<{ user: User; currentPath: string }> = ({ user, currentP
           </button>
           <div id="input-mobile-panel" class={inputActive ? "" : "hidden"}>
             {INPUT_LINKS.map((link) => (
+              <a
+                href={link.href}
+                class={`flex items-center gap-3 pl-12 pr-4 py-3 rounded-xl text-sm transition-colors ${
+                  currentPath === link.href
+                    ? "text-primary font-bold"
+                    : "text-text-secondary dark:text-text-secondary-dark hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+              >
+                <span class="material-symbols-outlined text-[20px]">{link.icon}</span>
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          <button
+            id="laporan-mobile-toggle"
+            type="button"
+            class={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-base w-full text-left transition-colors ${
+              laporanActive
+                ? "bg-primary/10 text-primary font-bold"
+                : "text-text-main dark:text-text-main-dark hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <span class="material-symbols-outlined">summarize</span>
+            Laporan
+            <span id="laporan-mobile-icon" class="material-symbols-outlined ml-auto text-[20px]">
+              {laporanActive ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+          <div id="laporan-mobile-panel" class={laporanActive ? "" : "hidden"}>
+            {LAPORAN_LINKS.map((link) => (
               <a
                 href={link.href}
                 class={`flex items-center gap-3 pl-12 pr-4 py-3 rounded-xl text-sm transition-colors ${

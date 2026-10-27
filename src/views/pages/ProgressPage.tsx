@@ -37,8 +37,7 @@ export const ProgressPage: FC<{
   classes: ClassRoom[];
   selectedClass: ClassRoom | null;
   rows: Row[];
-  canvaReady?: boolean;
-}> = ({ user, classes, selectedClass, rows, canvaReady }) => {
+}> = ({ user, classes, selectedClass, rows }) => {
   const isAdmin = user.role === "admin";
 
   if (classes.length === 0) {
@@ -143,46 +142,6 @@ export const ProgressPage: FC<{
               <span class="text-text-secondary text-sm font-semibold"> / {rows.length}</span>
             </p>
           </div>
-        </div>
-      )}
-
-      {selectedClass && rows.length > 0 && (
-        <div class="mb-6 flex flex-wrap items-center gap-2">
-          {canvaReady ? (
-            <form
-              method="post"
-              action={`/laporan/kelas/${selectedClass.id}/antrean`}
-              data-confirm={`Laporan Pekanan untuk <b>${rows.length} siswa</b> kelas ${selectedClass.name} akan dibuat lewat Canva, satu per satu.<br><br>Prosesnya berjalan di server — halaman boleh ditutup. Unduh ZIP-nya di halaman Antrean Laporan setelah selesai.`}
-              data-confirm-title="Buat laporan sekelas?"
-              data-confirm-icon="question"
-              data-confirm-ok="Ya, masukkan antrean"
-              data-loader-text="Memasukkan ke antrean"
-            >
-              <button type="submit" class={BTN_GHOST}>
-                <span class="material-symbols-outlined text-[20px]">folder_zip</span>
-                Buat Laporan Pekanan Sekelas (Canva)
-              </button>
-            </form>
-          ) : (
-            <p class="text-text-secondary dark:text-text-secondary-dark text-sm flex items-start gap-2">
-              <span class="material-symbols-outlined text-[20px] shrink-0">info</span>
-              {/* Satu span supaya tautan ikut mengalir dalam kalimat, bukan kolom sendiri */}
-              <span>
-                Laporan Pekanan dibuat lewat Canva, yang belum terhubung.{" "}
-                {isAdmin ? (
-                  <a href="/administrasi/pengaturan/canva" class="text-primary font-bold hover:underline whitespace-nowrap">
-                    Atur sekarang
-                  </a>
-                ) : (
-                  "Hubungi administrator."
-                )}
-              </span>
-            </p>
-          )}
-          <a href="/laporan/antrean" class={BTN_GHOST}>
-            <span class="material-symbols-outlined text-[20px]">pending_actions</span>
-            Antrean Laporan
-          </a>
         </div>
       )}
 
@@ -325,21 +284,6 @@ export const ProgressPage: FC<{
                         angka yang Anda isi, jadi bisa dipakai juga untuk mengoreksi salah input.
                       </p>
                     </form>
-
-                    {canvaReady && (
-                      <form
-                        method="post"
-                        action={`/laporan/siswa/${row.student.id}/antrean`}
-                        class="mt-5 pt-4 border-t border-border-light dark:border-border-light-dark flex flex-wrap gap-2"
-                        data-loader-text="Memasukkan ke antrean"
-                      >
-                        <input type="hidden" name="return_kelas" value={String(selectedClass?.id ?? "")} />
-                        <button type="submit" class={BTN_GHOST}>
-                          <span class="material-symbols-outlined text-[20px]">description</span>
-                          Buat Laporan Pekanan (Canva)
-                        </button>
-                      </form>
-                    )}
                   </div>
                 </details>
               );

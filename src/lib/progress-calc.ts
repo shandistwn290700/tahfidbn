@@ -121,7 +121,7 @@ function loadAllEntries(): Map<number, ProgressEntry[]> {
  * Totalnya dihitung bersih per siswa lalu ditahan di 0: koreksi salah ketik tetap
  * saling meniadakan, tetapi penghapusan tidak pernah membuat "pekan ini" minus.
  */
-function loadAllTrends(): Map<number, number> {
+export function loadAllTrends(): Map<number, number> {
   const rows = db
     .prepare(
       `SELECT student_id, MAX(COALESCE(SUM(ayah_to - ayah_from), 0), 0) AS delta
