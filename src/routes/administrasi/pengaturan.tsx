@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { authMiddleware, adminMiddleware } from "../../middleware/auth.ts";
 import { redirectWith } from "../../lib/http.ts";
@@ -355,10 +355,37 @@ pengaturan.get("/canva/connect", async (c) => {
     path: "/",
   });
 
+  // Callback datang tanpa sesi (lihat canvaCallbackHandler), jadi admin yang memulai
+  // koneksi dicatat di sini; pasangannya di callback dikenali lewat IP yang sama.
+  audit(c, "canva.koneksi_dimulai");
   return c.redirect(buildAuthorizeUrl(state, challenge));
 });
 
-pengaturan.get("/canva/callback", async (c) => {
+/**
+ * Halaman perantara setelah callback. Kembali dari canva.com adalah navigasi lintas-situs,
+ * sehingga cookie sesi (SameSite=Strict) tidak terkirim — termasuk pada redirect 302
+ * berikutnya. Navigasi yang dipicu dari halaman situs sendiri (meta refresh) dihitung
+ * satu-situs, jadi admin tiba di halaman Pengaturan tetap dalam keadaan masuk.
+ */
+function continueToCanvaSettings(c: Context, kind: "success" | "error", message: string) {
+  const url = `${CANVA_BASE}?${kind}=${encodeURIComponent(message)}`;
+  c.header("Cache-Control", "no-store");
+  return c.html(
+    `<!doctype html><html lang="id"><head><meta charset="utf-8">` +
+      `<meta http-equiv="refresh" content="0;url=${url}">` +
+      `<title>Kembali ke pengaturan Canva</title></head>` +
+      `<body><p><a href="${url}">Lanjutkan ke pengaturan Canva</a></p></body></html>`
+  );
+}
+
+/**
+ * Callback OAuth Canva. Sengaja TIDAK di belakang authMiddleware (dipasang di index.tsx
+ * sebelum rute Pengaturan): cookie sesi SameSite=Strict tidak ikut pada pengalihan dari
+ * canva.com, sehingga admin akan terlempar ke halaman login dan token tak pernah tersimpan.
+ * Tetap aman: callback hanya selesai bila cookie state + verifier PKCE cocok, dan keduanya
+ * hanya dipasang oleh /canva/connect yang wajib login sebagai admin di peramban yang sama.
+ */
+export async function canvaCallbackHandler(c: Context) {
   const code = c.req.query("code");
   const state = c.req.query("state");
   const savedState = getCookie(c, OAUTH_STATE_COOKIE);
@@ -369,9 +396,8 @@ pengaturan.get("/canva/callback", async (c) => {
 
   if (!code || !state || !verifier || state !== savedState) {
     audit(c, "canva.callback_ditolak", { message: "state OAuth tidak cocok atau kedaluwarsa" }, "warn");
-    return redirectWith(
+    return continueToCanvaSettings(
       c,
-      CANVA_BASE,
       "error",
       "Proses koneksi ke Canva gagal atau kedaluwarsa. Silakan coba lagi."
     );
@@ -381,14 +407,14 @@ pengaturan.get("/canva/callback", async (c) => {
     await exchangeCodeForToken(code, verifier);
   } catch (err) {
     const message = publicMessage(err, "Gagal menghubungkan akun Canva.");
-    return redirectWith(c, CANVA_BASE, "error", message);
+    return continueToCanvaSettings(c, "error", message);
   }
 
   audit(c, "canva.terhubung");
   // Antrean laporan yang berhenti karena koneksi terputus langsung berlanjut.
   kickReportWorker();
-  return redirectWith(c, CANVA_BASE, "success", "Akun Canva berhasil terhubung.");
-});
+  return continueToCanvaSettings(c, "success", "Akun Canva berhasil terhubung.");
+}
 
 pengaturan.post("/canva/disconnect", (c) => {
   disconnectCanva();

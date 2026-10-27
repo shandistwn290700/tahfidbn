@@ -1,8 +1,9 @@
 # Panduan Integrasi Canva
 
 Panduan ini untuk admin sekolah. **Laporan Pekanan dibuat sepenuhnya lewat Canva**: aplikasi
-mengisi Brand Template milik sekolah secara otomatis (Autofill API), lalu mengekspornya
-sebagai PDF. Tanpa Canva yang terhubung, Laporan Pekanan tidak bisa dibuat. Laporan
+mengisi Brand Template milik sekolah secara otomatis (Autofill API), lalu mengekspor halaman
+pertamanya sebagai gambar JPG, supaya orang tua bisa langsung membagikannya ke status
+WhatsApp atau Stories Instagram/Facebook. Tanpa Canva yang terhubung, Laporan Pekanan tidak bisa dibuat. Laporan
 Periode (tengah semester/semester penuh) tetap memakai PDF bawaan dan tidak butuh Canva.
 
 Proses ini melibatkan dua sisi: pengaturan di **dashboard Canva Developers** (di luar
@@ -87,8 +88,13 @@ domain yang sedang Anda buka, akan muncul peringatan merah.
 
 ## Langkah 3 — Desain & publish Brand Template
 
-1. Buat desain laporan di Canva seperti biasa (ukuran, warna, tata letak bebas sesuai
-   selera sekolah). Logo, nama sekolah, dan kontak cukup ditulis langsung di desain.
+1. Buat desain laporan di Canva berukuran **1080 × 1920 piksel, satu halaman saja**
+   (ukuran Story/status WhatsApp). Warna dan tata letak bebas sesuai selera sekolah. Logo,
+   nama sekolah, dan kontak cukup ditulis langsung di desain.
+
+   Aplikasi hanya mengekspor **halaman pertama**, jadi halaman kedua dan seterusnya tidak
+   pernah ikut. Ukuran lain (mis. A4) tetap bisa dipakai, tetapi tampil kecil dengan bidang
+   kosong saat dijadikan status.
 2. Setelah desainnya siap, publish jadi Brand Template: **File → Save as Brand Template**
    (atau **Share → More → Brand Template** tergantung versi Canva Anda), pilih folder, lalu
    **Publish**.
@@ -159,9 +165,10 @@ Ini bagian yang paling sering salah arah, jadi diperhatikan baik-baik urutannya.
 1. Buka **Input › Hafalan Qur'an**, pilih kelas, buka satu siswa, lalu klik
    **"Buat Laporan Pekanan (Canva)"**.
 2. Anda dibawa ke **Input › Antrean Laporan**. Halaman ini memperbarui diri sendiri tiap
-   5 detik. Satu laporan biasanya selesai dalam 15–60 detik, lalu tombol **Unduh PDF**
-   muncul.
-3. Kalau berhasil, coba **"Buat Laporan Pekanan Sekelas (Canva)"**. Hasilnya satu ZIP.
+   5 detik. Satu laporan biasanya selesai dalam 15–60 detik, lalu tombol **Unduh Gambar**
+   muncul. Hasilnya berkas `.jpg`.
+3. Kalau berhasil, coba **"Buat Laporan Pekanan Sekelas (Canva)"**. Hasilnya satu ZIP berisi
+   satu JPG per siswa.
 
 ### Cara kerja antrean (FIFO)
 

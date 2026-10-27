@@ -15,7 +15,7 @@ import { akunRoutes } from "./routes/akun.tsx";
 import { kelasRoutes } from "./routes/administrasi/kelas.tsx";
 import { siswaRoutes } from "./routes/administrasi/siswa.tsx";
 import { penggunaRoutes } from "./routes/administrasi/pengguna.tsx";
-import { pengaturanRoutes } from "./routes/administrasi/pengaturan.tsx";
+import { pengaturanRoutes, canvaCallbackHandler } from "./routes/administrasi/pengaturan.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
 import { homePath } from "./lib/http.ts";
 import { authMiddleware } from "./middleware/auth.ts";
@@ -142,6 +142,9 @@ app.route("/akun", akunRoutes);
 app.route("/administrasi/kelas", kelasRoutes);
 app.route("/administrasi/siswa", siswaRoutes);
 app.route("/administrasi/pengguna", penggunaRoutes);
+// Harus terdaftar SEBELUM rute Pengaturan: callback OAuth Canva berjalan tanpa sesi
+// (cookie SameSite=Strict tidak ikut dari canva.com) — lihat canvaCallbackHandler.
+app.get("/administrasi/pengaturan/canva/callback", canvaCallbackHandler);
 app.route("/administrasi/pengaturan", pengaturanRoutes);
 app.route("/dashboard", dashboardRoutes);
 
