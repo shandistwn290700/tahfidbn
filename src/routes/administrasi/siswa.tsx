@@ -404,6 +404,57 @@ siswa.post("/foto", async (c) => {
   );
 });
 
+siswa.post("/:id/foto", async (c) => {
+  const studentId = readInt(c.req.param("id"), 0, { min: 0 });
+  const body = await c.req.parseBody();
+  const file = body.file;
+  const back = buildQuery({ kelas: String(body.return_kelas || "") });
+
+  const target = db.prepare("SELECT name FROM students WHERE id = ?").get(studentId) as
+    | { name: string }
+    | null;
+  if (!target) {
+    return redirectWith(c, back, "error", "Siswa tidak ditemukan.");
+  }
+  if (!(file instanceof File) || file.size === 0) {
+    return redirectWith(c, back, "error", "Pilih berkas foto terlebih dahulu.");
+  }
+
+  const dotIndex = file.name.lastIndexOf(".");
+  const ext = dotIndex === -1 ? "" : file.name.slice(dotIndex + 1).trim().toLowerCase();
+
+  try {
+    const photoPath = savePhotoForStudent(studentId, ext, new Uint8Array(await file.arrayBuffer()));
+    db.prepare(
+      "UPDATE students SET photo_path = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run(photoPath, studentId);
+  } catch (err) {
+    return redirectWith(c, back, "error", publicMessage(err, "Gagal menyimpan foto"));
+  }
+
+  return redirectWith(c, back, "success", `Foto "${target.name}" berhasil disimpan.`);
+});
+
+siswa.post("/:id/foto/hapus", async (c) => {
+  const studentId = readInt(c.req.param("id"), 0, { min: 0 });
+  const body = await c.req.parseBody();
+  const back = buildQuery({ kelas: String(body.return_kelas || "") });
+
+  const target = db.prepare("SELECT name FROM students WHERE id = ?").get(studentId) as
+    | { name: string }
+    | null;
+  if (!target) {
+    return redirectWith(c, back, "error", "Siswa tidak ditemukan.");
+  }
+
+  deletePhotoForStudent(studentId);
+  db.prepare(
+    "UPDATE students SET photo_path = NULL, updated_at = datetime('now') WHERE id = ?"
+  ).run(studentId);
+
+  return redirectWith(c, back, "success", `Foto "${target.name}" telah dihapus.`);
+});
+
 siswa.post("/:id", async (c) => {
   const studentId = readInt(c.req.param("id"), 0, { min: 0 });
   const body = await c.req.parseBody();

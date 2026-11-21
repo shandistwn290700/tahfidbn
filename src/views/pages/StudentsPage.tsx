@@ -18,6 +18,15 @@ type StudentRow = StudentWithClass & { total_ayah: number };
 
 const GENDER_LABEL: Record<string, string> = { L: "Laki-laki", P: "Perempuan" };
 
+/**
+ * Menolak foto di atas 3MB sebelum terkirim, agar admin tidak menunggu unggahan
+ * yang pasti ditolak. Batas sebenarnya tetap ditegakkan server (lib/photos.ts).
+ */
+const PHOTO_SIZE_CHECK =
+  "var f=this.files&&this.files[0];" +
+  "this.setCustomValidity(f&&f.size>3*1024*1024?'Ukuran foto melebihi 3MB.':'');" +
+  "this.reportValidity();";
+
 const ClassSelect: FC<{
   id: string;
   classes: ClassRoom[];
@@ -435,6 +444,67 @@ export const StudentsPage: FC<{
                       </button>
                     </div>
                   </form>
+
+                  <div class="mt-4 pt-4 border-t border-border-light dark:border-border-light-dark">
+                    <p class={LABEL}>Foto Profil</p>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                      {siswa.photo_path ? (
+                        <div
+                          class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 bg-cover bg-center shrink-0 border border-border-light dark:border-border-light-dark"
+                          style={`background-image: url("${siswa.photo_path}")`}
+                        />
+                      ) : (
+                        <div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 text-text-secondary dark:text-text-secondary-dark flex items-center justify-center text-sm font-bold shrink-0">
+                          {siswa.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <form
+                        method="post"
+                        action={`/administrasi/siswa/${siswa.id}/foto`}
+                        enctype="multipart/form-data"
+                        data-loader-text="Mengunggah foto"
+                        class="flex-1 min-w-0"
+                      >
+                        <input type="hidden" name="return_kelas" value={kelasFilter} />
+                        <input
+                          id={`foto-${siswa.id}`}
+                          name="file"
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                          aria-label={`Berkas foto ${siswa.name}`}
+                          class={`${INPUT} file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer`}
+                          onchange={PHOTO_SIZE_CHECK}
+                          required
+                        />
+                        <p class="text-text-secondary dark:text-text-secondary-dark text-xs mt-2">
+                          JPG, JPEG, PNG, atau WEBP, maksimal 3MB. Foto lama akan diganti.
+                        </p>
+                        <div class="mt-3 flex flex-wrap gap-3">
+                          <button type="submit" class={BTN_PRIMARY}>
+                            <span class="material-symbols-outlined text-[20px]">upload</span>
+                            {siswa.photo_path ? "Ganti Foto" : "Unggah Foto"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                    {siswa.photo_path && (
+                      <form
+                        method="post"
+                        action={`/administrasi/siswa/${siswa.id}/foto/hapus`}
+                        class="mt-3"
+                        data-confirm={`Foto <b>${siswa.name}</b> akan dihapus.`}
+                        data-confirm-title="Hapus foto ini?"
+                        data-confirm-ok="Ya, hapus foto"
+                        data-loader-text="Menghapus foto"
+                      >
+                        <input type="hidden" name="return_kelas" value={kelasFilter} />
+                        <button type="submit" class={BTN_GHOST}>
+                          <span class="material-symbols-outlined text-[20px]">hide_image</span>
+                          Hapus Foto
+                        </button>
+                      </form>
+                    )}
+                  </div>
 
                   <form
                     method="post"
